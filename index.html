@@ -37,6 +37,7 @@
         .progress-bar { height: 100%; border-radius: 4px; transition: width 0.5s; }
         .target-stats { display: flex; justify-content: space-between; font-size: 0.85em; color: var(--text-muted); }
         
+        /* สไตล์สลับโหมด */
         .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px; transition: 0.3s ease; }
         .main-grid.executive-mode { grid-template-columns: 1fr; }
         .main-grid.executive-mode #formCard { display: none; }
@@ -345,7 +346,7 @@
 
 <script>
     // 📍 URL ของ Google Apps Script 📍
-    const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbw3eX38G2loEdtpaIQsJACGJbMvDlNuzB4ANwGA_Eqr6D1LAzNSS2vxQ6hlTJLsX8701w/exec';
+    const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwjq5hbL18QORPz-WGjvTd-nac4bn1mrpmqYnAsdyLvaCgt084H22kCYLajBxYNQRJs1w/exec';
 
     let monthlyChartInstance = null;
     const platformColors = { 'Facebook': '#1877F2', 'TikTok': '#000000', 'YouTube': '#FF0000', 'Line OA': '#00C300' };
@@ -384,7 +385,7 @@
         marketingData.forEach(j => {
             const d = new Date(j.date);
             if(d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-                currentMonthCount++;
+                currentMonthCount++; // 1 Content = 1 ชิ้น
             }
         });
 
@@ -393,16 +394,16 @@
 
         if (currentMonthCount < 25) {
             statusText = `วอร์มนิ้วอยู่ฮะ 🥶 (เป้าแรก 25)`;
-            barColor = "#9ca3af";
+            barColor = "#9ca3af"; // เทา
         } else if (currentMonthCount < 50) {
             statusText = `ทรงอย่างแบด มาตรฐานเป๊ะ 🤙 (เป้าต่อไป 50)`;
-            barColor = "#3b82f6";
+            barColor = "#3b82f6"; // ฟ้า
         } else if (currentMonthCount < 80) {
             statusText = `ปั่นยับๆ เอาเรื่องจัด 🔥 (เป้าหมายสูงสุด 80)`;
-            barColor = "#f59e0b";
+            barColor = "#f59e0b"; // ส้ม
         } else {
             statusText = `เดือดจัด ปลัดบอก! ทะลุหลอดไปเลย 🚀💯`;
-            barColor = "#ef4444";
+            barColor = "#ef4444"; // แดง
         }
 
         let pct = (currentMonthCount / 80) * 100;
@@ -435,6 +436,7 @@
         });
         localStorage.setItem('platformTargets', JSON.stringify(platformTargets));
         
+        // บันทึกวันที่อัปเดตล่าสุด
         const nowStr = new Date().toLocaleDateString('en-GB'); 
         localStorage.setItem('targetLastUpdated', nowStr);
         document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${nowStr}`;
@@ -451,7 +453,7 @@
         });
     }
 
-    // --- ระบบฟอร์มลิงก์ (แก้บั๊ก type="text" แทน type="url") ---
+    // --- ระบบฟอร์มลิงก์ ---
     function toggleEditLinkInputs() {
         const cont = document.getElementById('editLinksArea');
         const currentLinks = {};
@@ -480,19 +482,23 @@
     function toggleLinkInputs() {
         const cont = document.getElementById('linkInputsContainer');
         cont.innerHTML = '';
-        ['chk-fb','chk-tk','chk-yt','chk-line'].forEach(id => {
-            const chk = document.getElementById(id);
-            if(chk.checked) {
-                const name = chk.value;
+        const platforms = [
+            { id: 'chk-fb', name: 'Facebook', color: '#1877F2', inputId: 'link-fb' },
+            { id: 'chk-tk', name: 'TikTok', color: '#000000', inputId: 'link-tk' },
+            { id: 'chk-yt', name: 'YouTube', color: '#FF0000', inputId: 'link-yt' },
+            { id: 'chk-line', name: 'Line OA', color: '#00C300', inputId: 'link-line' }
+        ];
+        platforms.forEach(p => {
+            if(document.getElementById(p.id).checked) {
                 const div = document.createElement('div');
-                div.innerHTML = `<label style="font-size:0.85em; color:${platformColors[name]}">${name}</label>
-                                 <input type="text" id="link-${id}" class="form-control" placeholder="วางลิงก์ (เช่น https://...)">`;
+                div.innerHTML = `<label style="font-size:0.85em; color:${p.color}">${p.name}</label>
+                                 <input type="text" id="${p.inputId}" class="form-control" placeholder="วางลิงก์ (เช่น https://...)">`;
                 cont.appendChild(div);
             }
         });
     }
 
-    // --- ระบบจัดการยอดวิว (Optimistic Update) ---
+    // --- ระบบจัดการยอดวิว ---
     function openViewsModal(jobId) {
         const job = marketingData.find(j => j.id === jobId);
         if(!job) return;
@@ -528,7 +534,7 @@
         const originalText = btnSubmit.innerHTML;
         btnSubmit.disabled = true; btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
 
-        // 🌟 เซฟลงเครื่องก่อนเลย (Optimistic)
+        // 🌟 เซฟลงเครื่องก่อนเลย
         marketingData[jobIndex] = job;
         localStorage.setItem('marketingData', JSON.stringify(marketingData));
         renderMainTable(); if(document.getElementById('allContentModal').style.display === 'flex') renderAllContentTable();
@@ -547,7 +553,7 @@
     }
 
 
-    // --- ระบบแก้ไขงาน (Optimistic Update) ---
+    // --- ระบบแก้ไขงาน ---
     function openEditModal(jobId) {
         const job = marketingData.find(j => j.id === jobId);
         if(!job) return;
@@ -606,7 +612,7 @@
         const originalBtnText = btnSubmit.innerHTML;
         btnSubmit.disabled = true; btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
 
-        // 🌟 เซฟลงเครื่องก่อนเลย (Optimistic)
+        // 🌟 เซฟลงเครื่องก่อนเลย
         marketingData[jobIndex] = updatedJob;
         localStorage.setItem('marketingData', JSON.stringify(marketingData));
         renderMainTable(); if(document.getElementById('allContentModal').style.display === 'flex') renderAllContentTable();
@@ -624,7 +630,7 @@
         }
     }
 
-    // --- บันทึกงานใหม่ (Optimistic Update) ---
+    // --- บันทึกงานใหม่ ---
     async function saveJob() {
         const title = document.getElementById('jobTitle').value.trim();
         const dateInput = document.getElementById('jobDate').value;
@@ -655,7 +661,7 @@
         const originalBtnText = btnSubmit.innerHTML;
         btnSubmit.disabled = true; btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึกข้อมูล...';
 
-        // 🌟 เซฟลงเครื่องก่อนเลย (Optimistic)
+        // 🌟 เซฟลงเครื่องก่อนเลย
         marketingData.push(newJob);
         localStorage.setItem('marketingData', JSON.stringify(marketingData));
         document.getElementById('jobTitle').value = '';
@@ -676,7 +682,7 @@
 
     async function deleteJob(id) {
         if(confirm('ต้องการลบชิ้นงานนี้อย่างถาวรใช่หรือไม่? (ระบบจะลบออกจาก Google Sheet ด้วย)')) {
-            // 🌟 ลบในเครื่องก่อนเลย (Optimistic)
+            // 🌟 ลบในเครื่องก่อนเลย
             marketingData = marketingData.filter(j => j.id !== id); 
             localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
             renderMainTable(); if(document.getElementById('allContentModal').style.display === 'flex') renderAllContentTable();
