@@ -476,6 +476,31 @@
             font-weight: bold; 
         }
 
+        /* 🌟 Loading Overlay 🌟 */
+        #loadingOverlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(255,255,255,0.9); 
+            z-index: 9999; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        .big-spinner { 
+            border: 5px solid #f3f3f3; 
+            border-radius: 50%; 
+            border-top: 5px solid var(--primary); 
+            width: 50px; 
+            height: 50px; 
+            animation: spin 1s linear infinite; 
+            margin-bottom: 15px; 
+        }
+
         /* Utilities */
         .spinner { 
             border: 3px solid rgba(255,255,255,0.3); 
@@ -542,10 +567,16 @@
 </head>
 <body>
 
+<div id="loadingOverlay">
+    <div class="big-spinner"></div>
+    <h2 style="color: var(--primary);">กำลังซิงค์ข้อมูลจาก Google Sheet...</h2>
+    <p style="color: var(--text-muted);">รอสักครู่นะครับวัยรุ่น...</p>
+</div>
+
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 15px;">
         <div style="display: flex; align-items: center; gap: 15px;">
-            <img src="logo-sp.png" alt="Isuzu SP Logo" style="height: 60px; object-fit: contain;">
+            <img src="logo-sp.png" alt="Isuzu SP Logo" style="height: 80px; object-fit: contain;">
             <div>
                 <p style="color: var(--text-muted); margin: 0; font-size: 1.1em; font-weight: bold;">แดชบอร์ดติดตามผลงานและเป้าหมาย</p>
                 <p style="color: var(--primary); margin: 0; font-size: 0.9em; font-weight: bold;">ประจำปี 2026</p>
@@ -904,13 +935,15 @@
 </div>
 
 <script>
-    // 📍 URL ของ Google Apps Script 📍
-    const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwjq5hbL18QORPz-WGjvTd-nac4bn1mrpmqYnAsdyLvaCgt084H22kCYLajBxYNQRJs1w/exec';
+    // 📍 URL ของ Google Apps Script (ใส่ URL ตัวล่าสุดที่นี่ครับ) 📍
+    const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwfYj6D7uFq3ykPFOkbmUofXtPuApUi4-tT5BvcTQHJUSMHSW0qGREPE3wRqbInk-UPSw/exec';
 
+    // Register Chart Plugin
     Chart.register(ChartDataLabels);
 
     let monthlyChartInstance = null;
     
+    // Colors Definitions
     const platformColors = { 
         'Facebook': '#1877F2', 
         'TikTok': '#000000', 
@@ -932,6 +965,7 @@
         'แต่ละวันสหะภัณฑ์': '#6b21a8'
     };
 
+    // State Variables
     let platformTargets = JSON.parse(localStorage.getItem('platformTargets')) || {
         'Facebook': { current: 0, target: 100 }, 
         'TikTok': { current: 0, target: 100 },
@@ -939,13 +973,13 @@
         'Line OA': { current: 0, target: 100 }
     };
     
-    let marketingData = JSON.parse(localStorage.getItem('marketingData')) || [];
+    let marketingData = []; // ข้อมูลเริ่มต้นเป็น array ว่าง เดี๋ยวรอโหลดจาก Google Sheet
     
     let currentPage = 1;
     const itemsPerPage = 10;
     let filteredAllData = [];
 
-    // 🌟 รายการรูปภาพ Mascot 🌟
+    // 🌟 รายการรูปภาพ Mascot (นำมาใช้กับหลอดสเตตัสเดือนนี้เท่านั้น) 🌟
     const mascots = [
         'ISZ-Mascot-Master.png',
         'ISZ-Pose-01.png',
@@ -958,6 +992,7 @@
         'ISZ-Pose-08.png'
     ];
 
+    // 🌟 ฟังก์ชันสุ่มมาสคอต (เฉพาะหลอดรายเดือน) 🌟
     function setRandomMascots() {
         const mascotImgElement = document.getElementById('monthlyMascot');
         if (mascotImgElement) {
@@ -966,6 +1001,7 @@
         }
     }
 
+    // --- 🌟 ระบบจัดการ Dropdown Filters 🌟 ---
     function toggleDropdown(id) {
         const dropdown = document.getElementById(id);
         
@@ -987,6 +1023,7 @@
         }
     });
 
+    // --- 🌟 ระบบสลับโหมด 🌟 ---
     let isExecutiveMode = true; 
     
     function toggleMode() {
@@ -1011,7 +1048,7 @@
         }, 350);
     }
 
-    // 🌟 อัปเดตสถานะเดือนนี้ และกำหนดสีหลอด 🌟
+    // --- 🌟 อัปเดตสถานะเดือนนี้ และกำหนดสีหลอดพร้อมแอนิเมชัน 🌟 ---
     function updateMonthlyStatus() {
         const filterVal = document.getElementById('monthFilter').value;
         let targetMonth = new Date().getMonth();
@@ -1068,6 +1105,7 @@
         bar.style.background = barBgGradient;
     }
 
+    // --- 🌟 จัดการเป้าหมาย 🌟 ---
     function openTargetModal() {
         const area = document.getElementById('targetInputsArea');
         area.innerHTML = '';
@@ -1121,6 +1159,7 @@
         });
     }
 
+    // --- 🌟 จัดการฟอร์มลิงก์ 🌟 ---
     function toggleEditLinkInputs() {
         const cont = document.getElementById('editLinksArea');
         const currentLinks = {};
@@ -1176,6 +1215,7 @@
         });
     }
 
+    // --- 🌟 จัดการยอดวิว 🌟 ---
     function openViewsModal(jobId) {
         const job = marketingData.find(j => j.id === jobId);
         if (!job) return;
@@ -1248,6 +1288,7 @@
         }
     }
 
+    // --- 🌟 จัดการแก้ไขงาน 🌟 ---
     function openEditModal(jobId) {
         const job = marketingData.find(j => j.id === jobId);
         if (!job) return;
@@ -1356,6 +1397,7 @@
         }
     }
 
+    // --- 🌟 จัดการเพิ่มงานใหม่ 🌟 ---
     async function saveJob() {
         const title = document.getElementById('jobTitle').value.trim();
         const dateInput = document.getElementById('jobDate').value;
@@ -1458,7 +1500,7 @@
         }
     }
 
-    // --- 🌟 วาดกราฟ 🌟 ---
+    // --- 🌟 ฟังก์ชันวาดกราฟแบบ Dynamic Gradient 🌟 ---
     function getBarGradient(context) {
         const chart = context.chart;
         const {ctx, chartArea} = chart;
@@ -1518,20 +1560,22 @@
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false, 
-                // 🌟 กดที่แท่งกราฟเพื่อ Filter 🌟
+                
+                // 🌟 ระบบคลิกที่กราฟเพื่อกรองข้อมูล 🌟
                 onClick: (e, elements) => {
                     if (elements.length > 0) {
                         const monthIndex = elements[0].index;
                         document.getElementById('monthFilter').value = monthIndex;
                         applyFilters();
                         updateMonthlyStatus();
-                        setRandomMascots(); // สุ่มมาสคอตใหม่เมื่อกดกราฟ
+                        setRandomMascots();
                     }
                 },
-                // เปลี่ยนเคอร์เซอร์เป็นรูปนิ้วตอนชี้กราฟ
+                // เปลี่ยนเคอร์เซอร์เป็นรูปนิ้วตอนชี้ที่แท่งกราฟ
                 onHover: (event, chartElement) => {
                     event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
                 },
+                
                 plugins: { 
                     legend: { 
                         display: false 
@@ -1555,6 +1599,7 @@
         updateMonthlyStatus();
     }
 
+    // --- 🌟 จัดการภาพพรีวิว 🌟 ---
     function getGDriveEmbedHtml(url) {
         const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
         if (m) {
@@ -1625,6 +1670,7 @@
         document.getElementById('previewModal').style.display = 'none'; 
     }
 
+    // --- 🌟 วาดตาราง 🌟 ---
     function generateTableRows(data) {
         if (data.length === 0) {
             return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
@@ -1674,6 +1720,7 @@
         }).join('');
     }
 
+    // --- 🌟 ระบบตัวกรอง 🌟 ---
     function applyFilters() {
         const monthFilter = document.getElementById('monthFilter').value;
         
@@ -1732,6 +1779,7 @@
         }
     }
 
+    // --- 🌟 ระบบล้างตัวกรอง 🌟 ---
     function resetFilters() {
         document.getElementById('monthFilter').value = 'all';
         document.querySelectorAll('.filter-chk-label input').forEach(el => {
@@ -1743,6 +1791,7 @@
         setRandomMascots();
     }
 
+    // --- 🌟 ระบบแบ่งหน้า Pagination 🌟 ---
     function updateAllContentTable(isPreFiltered = false) {
         if (!isPreFiltered) {
             filteredAllData = [...marketingData].sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -1785,6 +1834,32 @@
         document.getElementById('allContentModal').style.display = 'none'; 
     }
 
+    // --- 🌟 ระบบโหลดข้อมูลจาก Google Sheet (Cloud-First) 🌟 ---
+    function loadDataFromGoogleSheet() {
+        fetch(GOOGLE_SHEET_URL)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.result === "success" && data.data) {
+                    marketingData = data.data; 
+                    localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
+                    
+                    applyFilters(); 
+                    updateChart();
+                    setRandomMascots();
+                }
+                document.getElementById('loadingOverlay').style.display = 'none'; 
+            })
+            .catch(error => {
+                console.error("Fetch Error:", error);
+                
+                marketingData = JSON.parse(localStorage.getItem('marketingData')) || [];
+                applyFilters(); 
+                updateChart(); 
+                setRandomMascots();
+                document.getElementById('loadingOverlay').style.display = 'none';
+            });
+    }
+
     window.onload = () => {
         document.getElementById('jobDate').value = new Date().toISOString().split('T')[0];
         
@@ -1795,11 +1870,9 @@
 
         renderTargets(); 
         toggleLinkInputs(); 
-        applyFilters(); 
-        updateChart();
         
-        // สุ่มมาสคอตตอนโหลดหน้าเว็บครั้งแรก
-        setRandomMascots();
+        // เริ่มโหลดข้อมูลจาก Google Sheet ทันทีที่เปิดหน้าเว็บ
+        loadDataFromGoogleSheet();
     };
     
     window.onclick = (e) => {
