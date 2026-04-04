@@ -91,7 +91,7 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
             gap: 15px; 
             margin-bottom: 25px; 
-            margin-top: 20px; /* เพิ่มระยะห่างจาก Header */
+            margin-top: 20px; 
         }
 
         .target-card { 
@@ -112,48 +112,20 @@
             margin-bottom: 10px; 
         }
 
-        /* 🌟 CSS Progress Bar & Mascot (อัปเดตใหม่) 🌟 */
         .progress-container { 
             width: 100%; 
             background-color: #e5e7eb; 
-            border-radius: 6px; 
-            height: 12px; /* เพิ่มความหนาของหลอดให้ดูสวยขึ้น */
-            margin-bottom: 15px; 
-            margin-top: 25px; /* เว้นที่ด้านบนให้ตัวมาสคอต */
-            overflow: visible; /* สำคัญมาก! ห้ามซ่อนส่วนที่เกิน (เพื่อให้มาสคอตลอยได้) */
-            position: relative;
+            border-radius: 4px; 
+            height: 8px; 
+            margin-bottom: 10px; 
+            overflow: hidden; 
         }
 
         .progress-bar { 
             height: 100%; 
-            border-radius: 6px; 
-            transition: width 0.8s ease-out; 
-            position: relative; /* เป็นจุดอ้างอิงให้รูปมาสคอต */
-            background-size: 200% auto; /* เตรียมไว้สำหรับแอนิเมชัน */
-            animation: animatedGradient 3s linear infinite; /* แอนิเมชันไล่สี */
+            border-radius: 4px; 
+            transition: width 0.5s; 
         }
-
-        /* คีย์เฟรมสำหรับแอนิเมชันไล่สี Dynamic */
-        @keyframes animatedGradient {
-            0% { background-position: 0% 0%; }
-            100% { background-position: 100% 0%; }
-        }
-
-        /* สไตล์ของรูปมาสคอต */
-        .mascot-leader {
-            position: absolute;
-            height: 48px; /* ความสูงของมาสคอต (ปรับลด/เพิ่มได้ตามชอบ) */
-            top: -42px; /* ดึงให้รูปลอยขึ้นไปอยู่เหนือหลอด */
-            right: 0; /* เกาะติดขวามือสุดของหลอด (ตรงเปอร์เซ็นต์ปัจจุบัน) */
-            transform: translateX(50%); /* ดันให้ตัวการ์ตูนอยู่กึ่งกลางปลายหลอดพอดี */
-            z-index: 10;
-        }
-
-        /* กำหนดสี Gradient เฉพาะของแต่ละแพลตฟอร์ม */
-        [id="bar-Facebook"] { background: linear-gradient(90deg, #1877F2, #8bc2ff, #1877F2); }
-        [id="bar-TikTok"]   { background: linear-gradient(90deg, #000000, #777777, #000000); }
-        [id="bar-YouTube"]  { background: linear-gradient(90deg, #FF0000, #ff8888, #FF0000); }
-        [id="bar-Line OA"]  { background: linear-gradient(90deg, #00C300, #88e788, #00C300); }
 
         .target-stats { 
             display: flex; 
@@ -162,6 +134,41 @@
             color: var(--text-muted); 
         }
         
+        /* 🌟 CSS Monthly Progress Bar & Mascot 🌟 */
+        .monthly-progress-container { 
+            width: 100%; 
+            background-color: #e5e7eb; 
+            border-radius: 6px; 
+            height: 12px; 
+            margin-bottom: 15px; 
+            margin-top: 25px; /* เว้นที่ให้มาสคอต */
+            overflow: visible; /* ให้มาสคอตลอยได้ */
+            position: relative;
+        }
+
+        .monthly-progress-bar { 
+            height: 100%; 
+            border-radius: 6px; 
+            transition: width 0.8s ease-out; 
+            position: relative; 
+            background-size: 200% auto; 
+            animation: animatedGradient 3s linear infinite; 
+        }
+
+        @keyframes animatedGradient {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 0%; }
+        }
+
+        .mascot-leader {
+            position: absolute;
+            height: 48px; 
+            top: -42px; 
+            right: 0; 
+            transform: translateX(50%); 
+            z-index: 10;
+        }
+
         /* Main Grid & Cards */
         .main-grid { 
             display: grid; 
@@ -562,9 +569,7 @@
                 <span id="pct-Facebook">0%</span>
             </div>
             <div class="progress-container">
-                <div id="bar-Facebook" class="progress-bar" style="width: 0%;">
-                    <img id="mascot-Facebook" class="mascot-leader" src="" alt="mascot">
-                </div>
+                <div id="bar-Facebook" class="progress-bar" style="width: 0%; background-color: var(--color-fb);"></div>
             </div>
             <div class="target-stats">
                 <span id="cur-Facebook">ปัจจุบัน: 0</span>
@@ -578,9 +583,7 @@
                 <span id="pct-TikTok">0%</span>
             </div>
             <div class="progress-container">
-                <div id="bar-TikTok" class="progress-bar" style="width: 0%;">
-                    <img id="mascot-TikTok" class="mascot-leader" src="" alt="mascot">
-                </div>
+                <div id="bar-TikTok" class="progress-bar" style="width: 0%; background-color: var(--color-tk);"></div>
             </div>
             <div class="target-stats">
                 <span id="cur-TikTok">ปัจจุบัน: 0</span>
@@ -594,9 +597,7 @@
                 <span id="pct-YouTube">0%</span>
             </div>
             <div class="progress-container">
-                <div id="bar-YouTube" class="progress-bar" style="width: 0%;">
-                    <img id="mascot-YouTube" class="mascot-leader" src="" alt="mascot">
-                </div>
+                <div id="bar-YouTube" class="progress-bar" style="width: 0%; background-color: var(--color-yt);"></div>
             </div>
             <div class="target-stats">
                 <span id="cur-YouTube">ปัจจุบัน: 0</span>
@@ -610,9 +611,7 @@
                 <span id="pct-Line OA">0%</span>
             </div>
             <div class="progress-container">
-                <div id="bar-Line OA" class="progress-bar" style="width: 0%;">
-                    <img id="mascot-Line OA" class="mascot-leader" src="" alt="mascot">
-                </div>
+                <div id="bar-Line OA" class="progress-bar" style="width: 0%; background-color: var(--color-line);"></div>
             </div>
             <div class="target-stats">
                 <span id="cur-Line OA">ปัจจุบัน: 0</span>
@@ -631,8 +630,11 @@
                     <span style="font-size: 0.9em; font-weight: bold; color: var(--text-main);" id="monthlyStatusText">โหลดข้อมูล...</span>
                     <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);" id="monthlyCountText">0 งาน</span>
                 </div>
-                <div style="width: 100%; background-color: #e5e7eb; border-radius: 6px; height: 12px; overflow: hidden;">
-                    <div id="monthlyProgressBar" style="height: 100%; border-radius: 6px; transition: width 0.8s ease-out; background-color: #10b981; width: 0%;"></div>
+                
+                <div class="monthly-progress-container">
+                    <div id="monthlyProgressBar" class="monthly-progress-bar" style="width: 0%;">
+                        <img id="monthlyMascot" class="mascot-leader" src="" alt="mascot">
+                    </div>
                 </div>
             </div>
 
@@ -943,7 +945,7 @@
     const itemsPerPage = 10;
     let filteredAllData = [];
 
-    // 🌟 รายการรูปภาพ Mascot ทั้งหมด 🌟
+    // 🌟 รายการรูปภาพ Mascot 🌟
     const mascots = [
         'ISZ-Mascot-Master.png',
         'ISZ-Pose-01.png',
@@ -956,15 +958,12 @@
         'ISZ-Pose-08.png'
     ];
 
-    // 🌟 ฟังก์ชันสุ่มมาสคอต 🌟
     function setRandomMascots() {
-        Object.keys(platformTargets).forEach(p => {
-            const mascotImgElement = document.getElementById(`mascot-${p}`);
-            if (mascotImgElement) {
-                const randomMascot = mascots[Math.floor(Math.random() * mascots.length)];
-                mascotImgElement.src = randomMascot;
-            }
-        });
+        const mascotImgElement = document.getElementById('monthlyMascot');
+        if (mascotImgElement) {
+            const randomMascot = mascots[Math.floor(Math.random() * mascots.length)];
+            mascotImgElement.src = randomMascot;
+        }
     }
 
     function toggleDropdown(id) {
@@ -1012,6 +1011,7 @@
         }, 350);
     }
 
+    // 🌟 อัปเดตสถานะเดือนนี้ และกำหนดสีหลอด 🌟
     function updateMonthlyStatus() {
         const filterVal = document.getElementById('monthFilter').value;
         let targetMonth = new Date().getMonth();
@@ -1037,20 +1037,20 @@
         });
 
         let statusText = "";
-        let barColor = "";
+        let barBgGradient = "";
 
         if (currentMonthCount < 25) {
             statusText = `วอร์มนิ้วอยู่ฮะ 🥶 (เป้าแรก 25)`;
-            barColor = "#9ca3af";
+            barBgGradient = "linear-gradient(90deg, #9ca3af, #d1d5db, #9ca3af)"; // สีเทา
         } else if (currentMonthCount < 50) {
             statusText = `ทรงอย่างแบด มาตรฐานเป๊ะ 🤙 (เป้าต่อไป 50)`;
-            barColor = "#3b82f6";
+            barBgGradient = "linear-gradient(90deg, #3b82f6, #93c5fd, #3b82f6)"; // สีฟ้า
         } else if (currentMonthCount < 80) {
             statusText = `ปั่นยับๆ เอาเรื่องจัด 🔥 (เป้าหมายสูงสุด 80)`;
-            barColor = "#f59e0b";
+            barBgGradient = "linear-gradient(90deg, #f59e0b, #fcd34d, #f59e0b)"; // สีส้ม
         } else {
             statusText = `เดือดจัด ปลัดบอก! ทะลุหลอดไปเลย 🚀💯`;
-            barColor = "#ef4444";
+            barBgGradient = "linear-gradient(90deg, #ef4444, #f43f5e, #ef4444)"; // สีแดง
         }
 
         let pct = (currentMonthCount / 80) * 100;
@@ -1065,7 +1065,7 @@
         
         const bar = document.getElementById('monthlyProgressBar');
         bar.style.width = `${pct}%`;
-        bar.style.backgroundColor = barColor;
+        bar.style.background = barBgGradient;
     }
 
     function openTargetModal() {
@@ -1408,6 +1408,8 @@
         
         document.getElementById('jobTitle').value = '';
         toggleLinkInputs(); 
+        
+        setRandomMascots();
         applyFilters(); 
         updateChart();
 
@@ -1435,6 +1437,7 @@
             marketingData = marketingData.filter(j => j.id !== id); 
             localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
             
+            setRandomMascots();
             applyFilters(); 
             updateChart(); 
                 
@@ -1453,6 +1456,35 @@
                 alert('❌ ลบในเครื่องสำเร็จ (แต่ใน Google Sheet อาจยังอยู่ โปรดลบเองอีกครั้ง)');
             }
         }
+    }
+
+    // --- 🌟 วาดกราฟ 🌟 ---
+    function getBarGradient(context) {
+        const chart = context.chart;
+        const {ctx, chartArea} = chart;
+        
+        if (!chartArea) {
+            return '#4f46e5'; 
+        }
+        
+        const value = context.raw;
+        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+        
+        if (value < 25) {
+            gradient.addColorStop(0, '#9ca3af');
+            gradient.addColorStop(1, '#cbd5e1'); // สีเทา
+        } else if (value < 50) {
+            gradient.addColorStop(0, '#3b82f6');
+            gradient.addColorStop(1, '#93c5fd'); // สีฟ้า
+        } else if (value < 80) {
+            gradient.addColorStop(0, '#f59e0b');
+            gradient.addColorStop(1, '#fcd34d'); // สีส้ม
+        } else {
+            gradient.addColorStop(0, '#ef4444');
+            gradient.addColorStop(1, '#fda4af'); // สีแดง
+        }
+        
+        return gradient;
     }
 
     function updateChart() {
@@ -1477,13 +1509,29 @@
                 datasets: [{ 
                     label: 'จำนวนงาน', 
                     data: counts, 
-                    backgroundColor: '#4f46e5', 
+                    backgroundColor: function(context) {
+                        return getBarGradient(context);
+                    },
                     borderRadius: 4 
                 }]
             },
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false, 
+                // 🌟 กดที่แท่งกราฟเพื่อ Filter 🌟
+                onClick: (e, elements) => {
+                    if (elements.length > 0) {
+                        const monthIndex = elements[0].index;
+                        document.getElementById('monthFilter').value = monthIndex;
+                        applyFilters();
+                        updateMonthlyStatus();
+                        setRandomMascots(); // สุ่มมาสคอตใหม่เมื่อกดกราฟ
+                    }
+                },
+                // เปลี่ยนเคอร์เซอร์เป็นรูปนิ้วตอนชี้กราฟ
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                },
                 plugins: { 
                     legend: { 
                         display: false 
@@ -1692,6 +1740,7 @@
         
         applyFilters();
         updateMonthlyStatus();
+        setRandomMascots();
     }
 
     function updateAllContentTable(isPreFiltered = false) {
@@ -1749,7 +1798,7 @@
         applyFilters(); 
         updateChart();
         
-        // 🌟 เรียกฟังก์ชันสุ่มมาสคอตตอนโหลดหน้าเว็บครั้งแรก 🌟
+        // สุ่มมาสคอตตอนโหลดหน้าเว็บครั้งแรก
         setRandomMascots();
     };
     
