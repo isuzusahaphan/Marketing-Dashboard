@@ -569,8 +569,7 @@
 
 <div id="loadingOverlay">
     <div class="big-spinner"></div>
-    <h2 style="color: var(--primary);">กำลังซิงค์ข้อมูลจาก Google Sheet...</h2>
-    <p style="color: var(--text-muted);">รอสักครู่นะครับวัยรุ่น...</p>
+    <h2 style="color: var(--primary);">กำลังซิงค์ข้อมูลจากก้อนเมฆ...</h2>
 </div>
 
 <div class="container">
@@ -585,7 +584,6 @@
         
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
             <div class="header-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-                
                 <div style="font-size: 0.85em; color: var(--text-muted); font-weight: bold; background: var(--border); padding: 5px 10px; border-radius: 4px;">อีซูซุสหะภัณฑ์</div>
                 <button id="modeToggleBtn" class="btn-action" style="background: #10b981; color: white; border: none;" onclick="toggleMode()">👨‍💼 โหมดผู้บริหาร</button>
                 <button class="btn-action btn-primary" onclick="openTargetModal()">🎯 ตั้งค่าเป้าหมาย</button>
@@ -819,7 +817,7 @@
         <span class="close-modal" onclick="closeTargetModal()">&times;</span>
         <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">🎯 ตั้งค่าเป้าหมาย</h2>
         <div id="targetInputsArea"></div>
-        <button class="btn-submit" onclick="saveTargets()">💾 บันทึกเป้าหมาย</button>
+        <button id="btnSaveTargets" class="btn-submit" onclick="saveTargets()">💾 บันทึกเป้าหมาย</button>
     </div>
 </div>
 
@@ -919,7 +917,7 @@
 </div>
 
 <script>
-    // 📍 เอา URL ใหม่จาก Google Apps Script ที่ใส่ doGet() มาวางตรงนี้ครับ 📍
+    // 📍 เอา URL ใหม่จาก Google Apps Script ที่มีฟังก์ชัน saveTargets มาวางตรงนี้ครับ 📍
     const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwfYj6D7uFq3ykPFOkbmUofXtPuApUi4-tT5BvcTQHJUSMHSW0qGREPE3wRqbInk-UPSw/exec';
 
     Chart.register(ChartDataLabels);
@@ -938,7 +936,7 @@
         'YouTube': { current: 0, target: 100 }, 'Line OA': { current: 0, target: 100 }
     };
     
-    let marketingData = []; // จะถูกแทนที่ด้วยข้อมูลจาก Sheet ตอนโหลด
+    let marketingData = []; 
     let currentPage = 1;
     const itemsPerPage = 10;
     let filteredAllData = [];
@@ -1047,18 +1045,48 @@
         });
         document.getElementById('targetModal').style.display = 'flex';
     }
+
     function closeTargetModal() { document.getElementById('targetModal').style.display = 'none'; }
-    function saveTargets() {
+    
+    // 🌟 อัปเกรดระบบซิงค์เป้าหมายขึ้น Cloud 🌟
+    async function saveTargets() {
+        const btn = document.getElementById('btnSaveTargets');
+        const originalText = btn.innerHTML;
+        btn.disabled = true; 
+        btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+        
         Object.keys(platformTargets).forEach(p => {
             platformTargets[p].current = parseInt(document.getElementById(`cur-input-${p}`).value) || 0;
             platformTargets[p].target = parseInt(document.getElementById(`tar-input-${p}`).value) || 1;
         });
-        localStorage.setItem('platformTargets', JSON.stringify(platformTargets));
+        
         const nowStr = new Date().toLocaleDateString('en-GB'); 
-        localStorage.setItem('targetLastUpdated', nowStr);
-        document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${nowStr}`;
-        renderTargets(); closeTargetModal();
+        
+        try {
+            if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
+                await fetch(GOOGLE_SHEET_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                    body: JSON.stringify({ action: 'saveTargets', targets: platformTargets, lastUpdate: nowStr }) 
+                });
+            }
+            
+            localStorage.setItem('platformTargets', JSON.stringify(platformTargets));
+            localStorage.setItem('targetLastUpdated', nowStr);
+            document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${nowStr}`;
+
+            renderTargets(); 
+            closeTargetModal();
+        } catch (error) {
+            console.error('Error saving targets:', error);
+            alert('❌ บันทึกเป้าหมายลง Sheet ไม่สำเร็จ แต่บันทึกลงในเครื่องแล้วครับ');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
     }
+
     function renderTargets() {
         Object.keys(platformTargets).forEach(p => {
             const pct = Math.round((platformTargets[p].current / platformTargets[p].target) * 100);
@@ -1246,7 +1274,7 @@
             { chkId: 'chk-fb', name: 'Facebook', inputId: 'link-fb' },
             { chkId: 'chk-tk', name: 'TikTok', inputId: 'link-tk' },
             { chkId: 'chk-yt', name: 'YouTube', inputId: 'link-yt' },
-            { chkId: 'chk-line', name: 'Line OA', inputId: 'link-line' }
+            { id: 'chk-line', name: 'Line OA', inputId: 'link-line' }
         ];
 
         platformCheckboxes.forEach(p => {
@@ -1438,84 +1466,66 @@
 
     // 🌟 พระเอกของงาน: ฟังก์ชันโหลดข้อมูลจาก Sheet (Cloud-First) 🌟
     function loadDataFromGoogleSheet() {
-        // ถ้าเป็นแบบ no-cors มันจะดึงข้อมูลกลับมาไม่ได้ เลยต้องใช้การดึงแบบปกติ 
-        // *ถ้าไม่ขึ้นข้อมูลแสดงว่าสิทธิ์ของ Sheet โดนบล็อก แนะนำให้เปลี่ยนไปใช้ Script จากอีเมลส่วนตัวครับ*
         fetch(GOOGLE_SHEET_URL)
             .then(response => response.json())
             .then(data => {
-                if (data && data.result === "success" && data.data) {
-                    marketingData = data.data; // ทับข้อมูลในเครื่องด้วยข้อมูลจาก Sheet เลย!
-                    localStorage.setItem('marketingData', JSON.stringify(marketingData)); // สำรองไว้
+                if (data && data.result === "success") {
                     
-                    // สั่งวาดทุกอย่างใหม่
+                    // 🌟 ดึงข้อมูลชิ้นงาน 🌟
+                    if (data.marketingData || data.data) {
+                        marketingData = data.marketingData || data.data; 
+                        localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
+                    }
+                    
+                    // 🌟 ดึงข้อมูลเป้าหมาย (Targets) 🌟
+                    if (data.targets && Object.keys(data.targets).length > 0) {
+                        platformTargets = data.targets;
+                        localStorage.setItem('platformTargets', JSON.stringify(platformTargets));
+                    }
+
+                    // 🌟 ดึงข้อมูลอัปเดตล่าสุด 🌟
+                    if (data.lastUpdate && data.lastUpdate !== "ยังไม่มีข้อมูล") {
+                        document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${data.lastUpdate}`;
+                        localStorage.setItem('targetLastUpdated', data.lastUpdate);
+                    }
+                    
+                    renderTargets();
                     applyFilters(); 
                     updateChart();
                     setRandomMascots();
                 }
-                document.getElementById('loadingOverlay').style.display = 'none'; // ปิดหน้าจอโหลด
+                document.getElementById('loadingOverlay').style.display = 'none'; 
             })
             .catch(error => {
                 console.error("Fetch Error:", error);
-                // ถ้าดึงไม่ได้ ให้ใช้ข้อมูลจาก Local Storage แทน (Fallback)
+                
+                // ใช้ Fallback กรณีออฟไลน์หรือเน็ตมีปัญหา
                 marketingData = JSON.parse(localStorage.getItem('marketingData')) || [];
-                applyFilters(); updateChart(); setRandomMascots();
+                renderTargets();
+                applyFilters(); 
+                updateChart(); 
+                setRandomMascots();
                 document.getElementById('loadingOverlay').style.display = 'none';
             });
     }
 
     window.onload = () => {
         document.getElementById('jobDate').value = new Date().toISOString().split('T')[0];
+        
         const lastUpdated = localStorage.getItem('targetLastUpdated');
-        if (lastUpdated) document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${lastUpdated}`;
+        if (lastUpdated) {
+            document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${lastUpdated}`;
+        }
+
+        renderTargets(); 
+        toggleLinkInputs(); 
         
-        renderTargets(); toggleLinkInputs();
-        
-        // 🌟 เรียกฟังก์ชันโหลดข้อมูลจาก Sheet ตอนเปิดเว็บ 🌟
+        // โหลดข้อมูลจาก Google Sheet ทั้งหมดทันทีที่เปิดเว็บ
         loadDataFromGoogleSheet();
     };
     
     window.onclick = (e) => { if (e.target.className === 'modal') document.querySelectorAll('.modal').forEach(m => { m.style.display = 'none'; }); };
 
-    // 🌟 ระบบซิงค์ข้อมูลฉุกเฉิน (ดันของในเครื่องขึ้น Sheet) 🌟
-    async function syncLocalToCloud() {
-        const localData = JSON.parse(localStorage.getItem('marketingData')) || [];
-        if(localData.length === 0) {
-            alert('ไม่มีข้อมูลในเครื่องให้ซิงค์ครับ');
-            return;
-        }
-
-        if(!confirm(`คุณกำลังจะอัปโหลดข้อมูลเก่าจำนวน ${localData.length} รายการ ขึ้นไปยัง Google Sheet รูปแบบใหม่\n\nยืนยันหรือไม่?`)) return;
-
-        document.getElementById('loadingOverlay').innerHTML = `<div class="big-spinner"></div><h2 style="color: var(--primary);">กำลังซิงค์ข้อมูลขึ้น Cloud...</h2><p style="color: var(--text-muted);">กรุณาอย่าปิดหน้าต่างนี้ (กำลังอัปโหลด ${localData.length} รายการ)</p>`;
-        document.getElementById('loadingOverlay').style.display = 'flex';
-
-        let successCount = 0;
-        let failCount = 0;
-
-        for(const job of localData) {
-            try {
-                // ส่งทีละแถวให้ชัวร์
-                await fetch(GOOGLE_SHEET_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                    body: JSON.stringify({...job, action: 'add'}) 
-                });
-                successCount++;
-            } catch (error) {
-                failCount++;
-                console.error("Sync Error on ID:", job.id, error);
-            }
-        }
-
-        document.getElementById('loadingOverlay').style.display = 'none';
-        
-        if (failCount === 0) {
-            alert(`✅ ซิงค์สำเร็จทั้งหมด ${successCount} รายการ!\n\nกรุณากด F5 หรือ รีเฟรชหน้าเว็บ 1 ครั้งเพื่อให้ระบบดึงข้อมูลจาก Cloud ลงมาโชว์ครับ`);
-        } else {
-            alert(`⚠️ ซิงค์สำเร็จ ${successCount} รายการ, ล้มเหลว ${failCount} รายการ\nลองรีเฟรชหน้าเว็บดูว่าข้อมูลมาครบไหมครับ`);
-        }
-    }
 </script>
 </body>
 </html>
