@@ -205,7 +205,6 @@
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button class="btn-action" onclick="openAllContentModal()">ดูทั้งหมด</button>
-                <button id="btnUpdateViews" class="btn-action btn-primary" onclick="updateAllViews(this)">🔄 อัปเดตยอดวิว</button>
             </div>
         </div>
         
@@ -282,6 +281,18 @@
     </div>
 </div>
 
+<div id="viewsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeViewsModal()">&times;</span>
+        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">📊 ยอดวิวแยกตามช่องทาง</h2>
+        <h3 id="viewsTitle" style="margin-bottom: 15px; font-size: 1.1em;"></h3>
+        <input type="hidden" id="viewsJobId">
+        <div id="viewsContentContainer" class="link-inputs-container" style="margin-bottom: 20px;">
+            </div>
+        <button id="btnSaveViews" class="btn-submit" onclick="saveViews()">💾 บันทึกยอดวิว</button>
+    </div>
+</div>
+
 <div id="previewModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closePreviewModal()">&times;</span>
@@ -315,7 +326,7 @@
 </div>
 
 <script>
-    // 📍📍📍 URL ของ Google Apps Script ที่ใช้ดึง/ส่งข้อมูล 📍📍📍
+    // 📍📍📍 URL ของ Google Apps Script 📍📍📍
     const GOOGLE_SHEET_URL = 'https://script.google.com/a/macros/tripetch-isuzu.co.th/s/AKfycbwASQ9KacIGzwCYJH6bywIBo2RkNmkR2gSjrQp_yZ7jXUNfrsC3wxX9Gmyti27rsNxlPQ/exec';
 
     let monthlyChartInstance = null;
@@ -358,7 +369,7 @@
         });
     }
 
-    // --- 🌟 ระบบแก้ไขงาน ---
+    // --- ระบบแก้ไขงาน ---
     function toggleEditLinkInputs() {
         const cont = document.getElementById('editLinksArea');
         const currentLinks = {};
@@ -416,7 +427,6 @@
 
     function closeEditModal() { document.getElementById('editJobModal').style.display = 'none'; }
     
-    // 🟡 บันทึกการแก้ไข (ส่งไป Google Sheet)
     async function saveEditJob() {
         const id = parseInt(document.getElementById('editJobId').value);
         const jobIndex = marketingData.findIndex(j => j.id === id);
@@ -431,11 +441,15 @@
         ];
         platforms.forEach(p => {
             if(document.getElementById(p.id).checked) {
-                selected.push({ name: p.name, link: document.getElementById(p.inputId).value.trim() });
+                const existingPlatform = marketingData[jobIndex].platforms.find(ep => ep.name === p.name);
+                const oldViews = existingPlatform ? (existingPlatform.views || 0) : 0;
+                selected.push({ name: p.name, link: document.getElementById(p.inputId).value.trim(), views: oldViews });
             }
         });
 
         if(selected.length === 0) return alert('กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ!');
+
+        const newTotalViews = selected.reduce((sum, p) => sum + p.views, 0);
 
         const updatedJob = {
             action: 'edit',
@@ -445,7 +459,7 @@
             type: document.getElementById('editJobType').value,
             format: document.getElementById('editJobFormat').value,
             platforms: selected,
-            totalViews: marketingData[jobIndex].totalViews
+            totalViews: newTotalViews
         };
 
         const btnSubmit = document.getElementById('btnSaveEdit');
@@ -454,9 +468,10 @@
         btnSubmit.innerHTML = '<span class="spinner"></span> กำลังแก้ไขข้อมูล...';
 
         try {
-            await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedJob) });
+            if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
+                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedJob) });
+            }
             
-            // อัปเดตใน LocalStorage
             marketingData[jobIndex] = updatedJob;
             localStorage.setItem('marketingData', JSON.stringify(marketingData));
             
@@ -490,7 +505,6 @@
         });
     }
 
-    // 🟢 บันทึกงานใหม่ (ส่งไป Google Sheet)
     async function saveJob() {
         const title = document.getElementById('jobTitle').value.trim();
         const dateInput = document.getElementById('jobDate').value;
@@ -512,7 +526,7 @@
         platformCheckboxes.forEach(p => {
             if (document.getElementById(p.chkId)?.checked) {
                 const linkInput = document.getElementById(p.inputId);
-                selectedPlatforms.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '' });
+                selectedPlatforms.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '', views: 0 });
             }
         });
 
@@ -525,9 +539,9 @@
         btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึกข้อมูล...';
 
         try {
-            await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newJob) });
-            
-            // เก็บลงเครื่อง
+            if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
+                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newJob) });
+            }
             marketingData.push(newJob);
             localStorage.setItem('marketingData', JSON.stringify(marketingData));
 
@@ -546,12 +560,12 @@
         }
     }
 
-    // 🔴 ลบงาน (ส่งไป Google Sheet)
     async function deleteJob(id) {
         if(confirm('ต้องการลบชิ้นงานนี้อย่างถาวรใช่หรือไม่? (ระบบจะลบออกจาก Google Sheet ด้วย)')) {
             try {
-                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: id }) });
-                
+                if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
+                    await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: id }) });
+                }
                 marketingData = marketingData.filter(j => j.id !== id); 
                 localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
                 
@@ -563,6 +577,73 @@
                 console.error('Error:', error);
                 alert('❌ เกิดข้อผิดพลาด (ลบได้เฉพาะในเครื่อง กรุณาเช็ก Google Sheet อีกครั้ง)');
             }
+        }
+    }
+
+    // --- 🌟 ระบบจัดการยอดวิว (Views Modal) 🌟 ---
+    function openViewsModal(jobId) {
+        const job = marketingData.find(j => j.id === jobId);
+        if(!job) return;
+        
+        document.getElementById('viewsTitle').innerText = job.title;
+        document.getElementById('viewsJobId').value = job.id;
+        
+        const cont = document.getElementById('viewsContentContainer');
+        cont.innerHTML = '';
+        
+        job.platforms.forEach((p, idx) => {
+            const div = document.createElement('div');
+            div.className = 'form-group';
+            div.innerHTML = `<label style="color:${platformColors[p.name]}">${p.name} (ยอดวิว)</label>
+                             <input type="number" id="view-input-${idx}" class="form-control" placeholder="ระบุตัวเลขยอดวิว" value="${p.views || 0}">`;
+            cont.appendChild(div);
+        });
+
+        document.getElementById('viewsModal').style.display = 'flex';
+    }
+
+    function closeViewsModal() { document.getElementById('viewsModal').style.display = 'none'; }
+
+    async function saveViews() {
+        const id = parseInt(document.getElementById('viewsJobId').value);
+        const jobIndex = marketingData.findIndex(j => j.id === id);
+        if(jobIndex === -1) return;
+
+        let job = marketingData[jobIndex];
+        let total = 0;
+        
+        job.platforms.forEach((p, idx) => {
+            let v = parseInt(document.getElementById(`view-input-${idx}`).value) || 0;
+            p.views = v;
+            total += v;
+        });
+        
+        job.totalViews = total; 
+
+        const btnSubmit = document.getElementById('btnSaveViews');
+        const originalText = btnSubmit.innerHTML;
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+
+        try {
+            const updatedJob = { ...job, action: 'edit' }; 
+            
+            if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
+                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedJob) });
+            }
+            
+            localStorage.setItem('marketingData', JSON.stringify(marketingData));
+            
+            renderMainTable(); 
+            if(document.getElementById('allContentModal').style.display === 'flex') renderAllContentTable();
+            closeViewsModal();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ บันทึกลงในเครื่องแล้ว (แต่ส่งไป Google Sheet ไม่สำเร็จ)');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalText;
         }
     }
 
@@ -613,22 +694,35 @@
     // --- ตาราง ---
     function generateTableRows(data) {
         if(data.length === 0) return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
-        return data.map(j => `
+        return data.map(j => {
+            let actualTotalViews = j.platforms.reduce((sum, p) => sum + (p.views || 0), 0);
+            if (actualTotalViews === 0 && j.totalViews > 0) actualTotalViews = j.totalViews; 
+
+            const dateStr = new Date(j.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            const formatColor = j.format === 'Videos' ? '#10b981' : '#f59e0b';
+            
+            let platformBadges = j.platforms.map(p => `<span class="badge" style="background:${platformColors[p.name]}">${p.name}</span>`).join(' ');
+
+            let previewActionHtml = j.platforms.some(p => p.link) ? `<button class="btn-action btn-primary" style="margin-bottom:6px;" onclick="openPreviewModal(${j.id})">👁️ พรีวิว</button><br>` : '<span style="color:#aaa; font-size:0.85em;">(ไม่มีลิงก์)</span>';
+            let linkButtonsHtml = j.platforms.filter(p => p.link).map(p => `<a href="${p.link}" target="_blank" class="btn-action" style="margin-bottom:4px; display:inline-block; text-decoration:none;">🔗 ${p.name}</a>`).join(' ');
+
+            return `
             <tr>
-                <td style="white-space: nowrap;">${new Date(j.date).toLocaleDateString('en-GB')}</td>
-                <td><b>${j.title}</b><br><small style="color:#64748b">${j.type}</small></td>
-                <td><span class="badge" style="background:${j.format === 'Videos' ? '#10b981' : '#f59e0b'}">${j.format}</span></td>
-                <td>${j.platforms.map(p => `<span class="badge" style="background:${platformColors[p.name]}">${p.name}</span>`).join(' ')}</td>
+                <td style="white-space: nowrap;">${dateStr}</td>
+                <td style="min-width: 150px;"><b>${j.title}</b><br><small style="color:#64748b">${j.type}</small></td>
+                <td><span class="badge" style="background:${formatColor}">${j.format}</span></td>
+                <td>${platformBadges}</td>
+                <td>${previewActionHtml}${linkButtonsHtml}</td>
                 <td>
-                    ${j.platforms.some(p => p.link) ? `<button class="btn-action btn-primary" style="margin-bottom:6px;" onclick="openPreviewModal(${j.id})">👁️ พรีวิว</button><br>` : '<span style="color:#aaa; font-size:0.85em;">(ไม่มีลิงก์)</span>'}
-                    ${j.platforms.filter(p => p.link).map(p => `<a href="${p.link}" target="_blank" class="btn-action" style="margin-bottom:4px; display:inline-block; text-decoration:none;">🔗 ${p.name}</a>`).join(' ')}
+                    <b style="color:var(--primary); font-size:1.2em;">${actualTotalViews.toLocaleString()}</b><br>
+                    <button class="btn-action" style="margin-top: 5px;" onclick="openViewsModal(${j.id})">📊 แยกช่องทาง</button>
                 </td>
-                <td><b style="color:var(--primary); font-size:1.1em;">${j.totalViews.toLocaleString()}</b></td>
                 <td>
                     <button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;">✏️ แก้ไข</button><br>
                     <button class="btn-action btn-danger" onclick="deleteJob(${j.id})">🗑️ ลบ</button>
                 </td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
     }
 
     function renderMainTable() {
@@ -643,29 +737,6 @@
         document.getElementById('allContentModal').style.display = 'flex';
     }
     function closeAllContentModal() { document.getElementById('allContentModal').style.display = 'none'; }
-
-    // --- อัปเดตยอดวิว (จำลอง) ---
-    function updateAllViews(btn) {
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="spinner"></span> กำลังดึงข้อมูล...';
-        btn.disabled = true;
-
-        setTimeout(() => {
-            marketingData = marketingData.map(job => {
-                if(job.platforms.some(p => p.link)) {
-                    job.totalViews += Math.floor(Math.random() * 1400) + 100;
-                }
-                return job;
-            });
-            localStorage.setItem('marketingData', JSON.stringify(marketingData));
-            renderMainTable();
-            if(document.getElementById('allContentModal').style.display === 'flex') renderAllContentTable();
-            
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            alert('✅ อัปเดตยอดวิวจำลองสำเร็จ!');
-        }, 1500);
-    }
 
     window.onload = () => {
         document.getElementById('jobDate').value = new Date().toISOString().split('T')[0];
