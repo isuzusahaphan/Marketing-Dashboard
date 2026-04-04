@@ -101,6 +101,13 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
             border-left: 4px solid var(--primary); 
             position: relative; 
+            cursor: pointer; /* ทำให้รูปเมาส์เป็นนิ้วชี้ */
+            transition: 0.2s; /* เพื่อให้แอนิเมชันตอน hover สมูท */
+        }
+
+        .target-card:hover {
+            transform: translateY(-3px); /* ลอยขึ้นตอนเอาเมาส์ชี้ */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* เพิ่มเงาตอนเอาเมาส์ชี้ */
         }
 
         .target-header { 
@@ -593,7 +600,7 @@
     </div>
 
     <div class="target-grid">
-        <div class="target-card" style="border-color: var(--color-fb);">
+        <div class="target-card" style="border-color: var(--color-fb);" onclick="window.open('https://www.facebook.com/Sahaphanautosale', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-fb);">Facebook</span>
                 <span id="pct-Facebook">0%</span>
@@ -607,7 +614,7 @@
             </div>
         </div>
         
-        <div class="target-card" style="border-color: var(--color-tk);">
+        <div class="target-card" style="border-color: var(--color-tk);" onclick="window.open('https://www.tiktok.com/@isuzu_shp', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-tk);">TikTok</span>
                 <span id="pct-TikTok">0%</span>
@@ -621,7 +628,7 @@
             </div>
         </div>
         
-        <div class="target-card" style="border-color: var(--color-yt);">
+        <div class="target-card" style="border-color: var(--color-yt);" onclick="window.open('https://www.youtube.com/@%E0%B8%AD%E0%B8%B5%E0%B8%8B%E0%B8%B9%E0%B8%8B%E0%B8%B8%E0%B8%AA%E0%B8%AB%E0%B8%B0%E0%B8%A0%E0%B8%B1%E0%B8%93%E0%B8%91%E0%B9%8C', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-yt);">YouTube</span>
                 <span id="pct-YouTube">0%</span>
@@ -635,7 +642,7 @@
             </div>
         </div>
         
-        <div class="target-card" style="border-color: var(--color-line);">
+        <div class="target-card" style="border-color: var(--color-line);" onclick="window.open('https://lin.ee/VrAaVTj', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-line);">Line OA</span>
                 <span id="pct-Line OA">0%</span>
@@ -919,7 +926,6 @@
 </div>
 
 <script>
-    // 📍 เอา URL ใหม่จาก Google Apps Script ที่มีฟังก์ชัน saveTargets มาวางตรงนี้ครับ 📍
     const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyM0A8uecCA6LPT0Ry0qaCi5to4KHMMe4jjFbK3yTQGCTPQX3FMo4D0tpvOHwTQ-TaV7A/exec';
 
     Chart.register(ChartDataLabels);
@@ -943,11 +949,12 @@
     const itemsPerPage = 10;
     let filteredAllData = [];
 
-    const mascots = [
-        'ISZ-Mascot-Master.png', 'ISZ-Pose-01.png', 'ISZ-Pose-02.png',
-        'ISZ-Pose-03.png', 'ISZ-Pose-04.png', 'ISZ-Pose-05.png',
-        'ISZ-Pose-06.png', 'ISZ-Pose-07.png', 'ISZ-Pose-08.png'
-    ];
+    // 🌟 รายการรูปภาพ Mascot (ใช้ Loop) 🌟
+    const mascots = ['ISZ-Mascot-Master.png']; 
+    for (let i = 1; i <= 8; i++) {
+        let num = i.toString().padStart(2, '0');
+        mascots.push(`ISZ-Pose-${num}.png`);
+    }
 
     function setRandomMascots() {
         const mascotImgElement = document.getElementById('monthlyMascot');
