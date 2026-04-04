@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Command Center - Isuzu SP</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #6b7280;
+            --primary: #4f46e5;
+            --isuzu-red: #b91c1c; 
+            --border: #e5e7eb;
+            --color-fb: #1877F2;
+            --color-tk: #000000;
+            --color-yt: #FF0000;
+            --color-line: #00C300;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1, h2, h3 { margin-top: 0; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-content { background-color: var(--card-bg); padding: 25px; border-radius: 12px; width: 92%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
+        .modal-content.large { max-width: 1000px; }
+        .close-modal { position: absolute; right: 20px; top: 20px; font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; line-height: 1; z-index: 10; }
+        .close-modal:hover { color: #333; }
+
+        .target-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .target-card { background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid var(--primary); position: relative; }
+        .target-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.1em; margin-bottom: 10px; }
+        .progress-container { width: 100%; background-color: #e5e7eb; border-radius: 4px; height: 8px; margin-bottom: 10px; overflow: hidden; }
+        .progress-bar { height: 100%; border-radius: 4px; transition: width 0.5s; }
+        .target-stats { display: flex; justify-content: space-between; font-size: 0.85em; color: var(--text-muted); }
+        
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .card-title { font-size: 1.2em; font-weight: bold; margin-bottom: 20px; color: var(--text-main); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9em; color: var(--text-main); }
+        .form-control { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.95em; }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        .checkbox-group { display: flex; gap: 15px; flex-wrap: wrap; }
+        .checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9em; background: var(--bg-color); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .link-inputs-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+
+        .btn-submit { background-color: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1em; margin-top: 10px; transition: 0.2s; }
+        .btn-submit:hover { background-color: #4338ca; }
+        .btn-submit:disabled { background-color: #9ca3af; cursor: not-allowed; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; min-width: 600px; }
+        th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+        th { background-color: #f9fafb; color: var(--text-muted); font-weight: 600; position: sticky; top: 0; z-index: 1; }
+        .badge { padding: 4px 10px; border-radius: 4px; font-size: 0.8em; font-weight: bold; color: white; display: inline-block; margin-right: 4px; margin-bottom: 4px; }
+        
+        .btn-action { background: #ffffff; border: 1px solid #d1d5db; color: var(--text-main); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; font-weight: 500; transition: 0.2s; white-space: nowrap; }
+        .btn-action:hover { background: #f3f4f6; }
+        .btn-primary { background: var(--primary); color: white; border: none; }
+        .btn-primary:hover { background: #4338ca; }
+        .btn-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .btn-danger:hover { background: #fecaca; }
+
+        .target-setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        
+        @media (max-width: 768px) { 
+            body { padding: 10px; }
+            .main-grid { grid-template-columns: 1fr; } 
+            .target-setup-grid { grid-template-columns: 1fr; gap: 10px; }
+            .header-actions { flex-direction: column; align-items: flex-end; gap: 10px; width: 100%; }
+            .header-actions button { width: 100%; }
+            .card { padding: 15px; }
+            .modal-content { padding: 20px 15px; }
+        }
+
+        .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 14px; height: 14px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 5px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .preview-box { border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 15px; background: #fafafa; }
+        .preview-img { max-width: 100%; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-top: 10px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1 style="color: var(--isuzu-red); margin-bottom: 5px; font-size: 1.8em;">Marketing Command Center</h1>
+            <p style="color: var(--text-muted); margin: 0; font-size: 0.9em;">แดชบอร์ดติดตามผลงานและเป้าหมายการตลาด Isuzu SP ประจำปี 2026</p>
+        </div>
+        <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+            <div style="font-size: 0.85em; color: var(--text-muted); font-weight: bold; background: var(--border); padding: 5px 10px; border-radius: 4px;">อีซูซุสหะภัณฑ์</div>
+            <button class="btn-action btn-primary" onclick="openTargetModal()">🎯 ตั้งค่าเป้าหมาย</button>
+        </div>
+    </div>
+
+    <div class="target-grid">
+        <div class="target-card" style="border-color: var(--color-fb);">
+            <div class="target-header"><span style="color: var(--color-fb);">Facebook</span><span id="pct-Facebook">0%</span></div>
+            <div class="progress-container"><div id="bar-Facebook" class="progress-bar" style="width: 0%; background-color: var(--color-fb);"></div></div>
+            <div class="target-stats"><span id="cur-Facebook">ปัจจุบัน: 0</span><span id="tar-Facebook">เป้าหมาย: 0</span></div>
+        </div>
+        <div class="target-card" style="border-color: var(--color-tk);">
+            <div class="target-header"><span style="color: var(--color-tk);">TikTok</span><span id="pct-TikTok">0%</span></div>
+            <div class="progress-container"><div id="bar-TikTok" class="progress-bar" style="width: 0%; background-color: var(--color-tk);"></div></div>
+            <div class="target-stats"><span id="cur-TikTok">ปัจจุบัน: 0</span><span id="tar-TikTok">เป้าหมาย: 0</span></div>
+        </div>
+        <div class="target-card" style="border-color: var(--color-yt);">
+            <div class="target-header"><span style="color: var(--color-yt);">YouTube</span><span id="pct-YouTube">0%</span></div>
+            <div class="progress-container"><div id="bar-YouTube" class="progress-bar" style="width: 0%; background-color: var(--color-yt);"></div></div>
+            <div class="target-stats"><span id="cur-YouTube">ปัจจุบัน: 0</span><span id="tar-YouTube">เป้าหมาย: 0</span></div>
+        </div>
+        <div class="target-card" style="border-color: var(--color-line);">
+            <div class="target-header"><span style="color: var(--color-line);">Line OA</span><span id="pct-Line OA">0%</span></div>
+            <div class="progress-container"><div id="bar-Line OA" class="progress-bar" style="width: 0%; background-color: var(--color-line);"></div></div>
+            <div class="target-stats"><span id="cur-Line OA">ปัจจุบัน: 0</span><span id="tar-Line OA">เป้าหมาย: 0</span></div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div class="card-title">จำนวนชิ้นงานแต่ละเดือน (ปี 2026)</div>
+                <div style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                <img src="logo-sp.png" alt="Isuzu SP Logo" style="width: 80%; max-width: 400px; object-fit: contain;">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">บันทึกงานใหม่</div>
+            <div class="form-group">
+                <label>วันที่โพสต์</label>
+                <input type="date" id="jobDate" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>ชื่อชิ้นงาน / หัวข้อ</label>
+                <input type="text" id="jobTitle" class="form-control" placeholder="เช่น ส่งมอบรถใหม่ คุณ A...">
+            </div>
+            <div class="form-group">
+                <label>ประเภทงาน</label>
+                <select id="jobType" class="form-control">
+                    <option value="ส่งมอบรถใหม่">ส่งมอบรถใหม่</option>
+                    <option value="คู่บื้อ">คู่บื้อ</option>
+                    <option value="ไปกับสหะภัณฑ์">ไปกับสหะภัณฑ์</option>
+                    <option value="โหนกระบะ">โหนกระบะ</option>
+                    <option value="บรรทุกมุก">บรรทุกมุก</option>
+                    <option value="EVENT / เทศกาล">EVENT / เทศกาล</option>
+                    <option value="วันหยุด">วันหยุด</option>
+                    <option value="ตรีเพชร">ตรีเพชร</option>
+                    <option value="โปรศูนย์บริการ">โปรศูนย์บริการ</option>
+                    <option value="โปรฝ่ายขาย">โปรฝ่ายขาย</option>
+                    <option value="แต่ละวันสหะภัณฑ์">แต่ละวันสหะภัณฑ์</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>รูปแบบ</label>
+                <select id="jobFormat" class="form-control">
+                    <option value="Videos">Videos</option>
+                    <option value="Pictures">Pictures</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>ช่องทางที่โพสต์</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label"><input type="checkbox" id="chk-fb" value="Facebook" onchange="toggleLinkInputs()" checked> Facebook</label>
+                    <label class="checkbox-label"><input type="checkbox" id="chk-tk" value="TikTok" onchange="toggleLinkInputs()"> TikTok</label>
+                    <label class="checkbox-label"><input type="checkbox" id="chk-yt" value="YouTube" onchange="toggleLinkInputs()"> YouTube</label>
+                    <label class="checkbox-label"><input type="checkbox" id="chk-line" value="Line OA" onchange="toggleLinkInputs()"> Line OA</label>
+                </div>
+            </div>
+            
+            <div id="linkInputsContainer" class="link-inputs-container"></div>
+            <button id="btnSaveMain" class="btn-submit" onclick="saveJob()">บันทึกข้อมูล</button>
+        </div>
+    </div>
+
+    <div class="card" style="padding-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div class="card-title" style="margin-bottom: 0; border: none; padding: 0;">รายการคอนเทนต์ (10 รายการล่าสุด)</div>
+                <select id="monthFilter" class="form-control" style="width: auto; padding: 6px 10px;" onchange="renderMainTable()">
+                    <option value="all">ทุกเดือน (All)</option>
+                    <option value="0">มกราคม (Jan)</option>
+                    <option value="1">กุมภาพันธ์ (Feb)</option>
+                    <option value="2">มีนาคม (Mar)</option>
+                    <option value="3">เมษายน (Apr)</option>
+                    <option value="4">พฤษภาคม (May)</option>
+                    <option value="5">มิถุนายน (Jun)</option>
+                    <option value="6">กรกฎาคม (Jul)</option>
+                    <option value="7">สิงหาคม (Aug)</option>
+                    <option value="8">กันยายน (Sep)</option>
+                    <option value="9">ตุลาคม (Oct)</option>
+                    <option value="10">พฤศจิกายน (Nov)</option>
+                    <option value="11">ธันวาคม (Dec)</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-action" onclick="openAllContentModal()">ดูทั้งหมด</button>
+                <button id="btnUpdateViews" class="btn-action btn-primary" onclick="updateAllViews(this)">🔄 อัปเดตยอดวิว</button>
+            </div>
+        </div>
+        
+        <div style="overflow-x: auto; padding-bottom: 15px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>วันที่</th>
+                        <th>หัวข้อ / ประเภท</th>
+                        <th>รูปแบบ</th>
+                        <th>ช่องทาง</th>
+                        <th>พรีวิว / ลิงก์</th>
+                        <th>ยอดวิวรวม</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="mainTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="targetModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeTargetModal()">&times;</span>
+        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">🎯 ตั้งค่าเป้าหมาย</h2>
+        <div id="targetInputsArea"></div>
+        <button class="btn-submit" onclick="saveTargets()">💾 บันทึกเป้าหมาย</button>
+    </div>
+</div>
+
+<div id="editJobModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeEditModal()">&times;</span>
+        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">✏️ แก้ไขข้อมูลชิ้นงาน</h2>
+        <input type="hidden" id="editJobId">
+        <div class="form-group"><label>วันที่โพสต์</label><input type="date" id="editJobDate" class="form-control"></div>
+        <div class="form-group"><label>ชื่อชิ้นงาน</label><input type="text" id="editJobTitle" class="form-control"></div>
+        <div class="form-group">
+            <label>ประเภทงาน</label>
+            <select id="editJobType" class="form-control">
+                <option value="ส่งมอบรถใหม่">ส่งมอบรถใหม่</option>
+                <option value="คู่บื้อ">คู่บื้อ</option>
+                <option value="ไปกับสหะภัณฑ์">ไปกับสหะภัณฑ์</option>
+                <option value="โหนกระบะ">โหนกระบะ</option>
+                <option value="บรรทุกมุก">บรรทุกมุก</option>
+                <option value="EVENT / เทศกาล">EVENT / เทศกาล</option>
+                <option value="วันหยุด">วันหยุด</option>
+                <option value="ตรีเพชร">ตรีเพชร</option>
+                <option value="โปรศูนย์บริการ">โปรศูนย์บริการ</option>
+                <option value="โปรฝ่ายขาย">โปรฝ่ายขาย</option>
+                <option value="แต่ละวันสหะภัณฑ์">แต่ละวันสหะภัณฑ์</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>รูปแบบ</label>
+            <select id="editJobFormat" class="form-control">
+                <option value="Videos">Videos</option>
+                <option value="Pictures">Pictures</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>ช่องทางที่โพสต์</label>
+            <div class="checkbox-group">
+                <label class="checkbox-label"><input type="checkbox" id="edit-chk-fb" value="Facebook" onchange="toggleEditLinkInputs()"> Facebook</label>
+                <label class="checkbox-label"><input type="checkbox" id="edit-chk-tk" value="TikTok" onchange="toggleEditLinkInputs()"> TikTok</label>
+                <label class="checkbox-label"><input type="checkbox" id="edit-chk-yt" value="YouTube" onchange="toggleEditLinkInputs()"> YouTube</label>
+                <label class="checkbox-label"><input type="checkbox" id="edit-chk-line" value="Line OA" onchange="toggleEditLinkInputs()"> Line OA</label>
+            </div>
+        </div>
+        
+        <div id="editLinksArea" class="link-inputs-container"></div>
+        <button id="btnSaveEdit" class="btn-submit" onclick="saveEditJob()">💾 บันทึกการแก้ไข</button>
+    </div>
+</div>
+
+<div id="previewModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closePreviewModal()">&times;</span>
+        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">👁️ ภาพพรีวิวคอนเทนต์</h2>
+        <h3 id="previewTitle" style="margin-bottom: 15px; font-size: 1.1em;"></h3>
+        <div id="previewContentContainer"></div>
+    </div>
+</div>
+
+<div id="allContentModal" class="modal">
+    <div class="modal-content large" style="height: 85vh; display: flex; flex-direction: column;">
+        <span class="close-modal" onclick="closeAllContentModal()">&times;</span>
+        <h2 style="color: var(--text-main); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 15px;">📋 รายการคอนเทนต์ทั้งหมด</h2>
+        <div style="overflow: auto; flex: 1;">
+            <table style="margin-top: 0;">
+                <thead>
+                    <tr>
+                        <th>วันที่</th>
+                        <th>หัวข้อ / ประเภท</th>
+                        <th>รูปแบบ</th>
+                        <th>ช่องทาง</th>
+                        <th>พรีวิว / ลิงก์</th>
+                        <th>ยอดวิวรวม</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="allTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 📍📍📍 URL ของ Google Apps Script ที่ใช้ดึง/ส่งข้อมูล 📍📍📍
+    const GOOGLE_SHEET_URL = 'https://script.google.com/a/macros/tripetch-isuzu.co.th/s/AKfycbwASQ9KacIGzwCYJH6bywIBo2RkNmkR2gSjrQp_yZ7jXUNfrsC3wxX9Gmyti27rsNxlPQ/exec';
+
+    let monthlyChartInstance = null;
+    const platformColors = { 'Facebook': '#1877F2', 'TikTok': '#000000', 'YouTube': '#FF0000', 'Line OA': '#00C300' };
+    let platformTargets = JSON.parse(localStorage.getItem('platformTargets')) || {
+        'Facebook': { current: 0, target: 100 }, 'TikTok': { current: 0, target: 100 },
+        'YouTube': { current: 0, target: 100 }, 'Line OA': { current: 0, target: 100 }
+    };
+    let marketingData = JSON.parse(localStorage.getItem('marketingData')) || [];
+
+    // --- Modal เป้าหมาย ---
+    function openTargetModal() {
+        const area = document.getElementById('targetInputsArea');
+        area.innerHTML = '';
+        Object.keys(platformTargets).forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'target-setup-grid';
+            div.innerHTML = `<div><label style="color:${platformColors[p]}">${p} ปัจจุบัน</label><input type="number" id="cur-input-${p}" value="${platformTargets[p].current}" class="form-control"></div>
+                             <div><label>เป้าหมาย</label><input type="number" id="tar-input-${p}" value="${platformTargets[p].target}" class="form-control"></div>`;
+            area.appendChild(div);
+        });
+        document.getElementById('targetModal').style.display = 'flex';
+    }
+    function closeTargetModal() { document.getElementById('targetModal').style.display = 'none'; }
+    function saveTargets() {
+        Object.keys(platformTargets).forEach(p => {
+            platformTargets[p].current = parseInt(document.getElementById(`cur-input-${p}`).value) || 0;
+            platformTargets[p].target = parseInt(document.getElementById(`tar-input-${p}`).value) || 1;
+        });
+        localStorage.setItem('platformTargets', JSON.stringify(platformTargets));
+        renderTargets(); closeTargetModal();
+    }
+    function renderTargets() {
+        Object.keys(platformTargets).forEach(p => {
+            const pct = Math.round((platformTargets[p].current / platformTargets[p].target) * 100);
+            document.getElementById(`pct-${p}`).innerText = `${pct}%`;
+            document.getElementById(`bar-${p}`).style.width = `${pct > 100 ? 100 : pct}%`;
+            document.getElementById(`cur-${p}`).innerText = `ปัจจุบัน: ${platformTargets[p].current.toLocaleString()}`;
+            document.getElementById(`tar-${p}`).innerText = `เป้าหมาย: ${platformTargets[p].target.toLocaleString()}`;
+        });
+    }
+
+    // --- 🌟 ระบบแก้ไขงาน ---
+    function toggleEditLinkInputs() {
+        const cont = document.getElementById('editLinksArea');
+        const currentLinks = {};
+        ['edit-link-fb','edit-link-tk','edit-link-yt','edit-link-line'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) currentLinks[id] = el.value;
+        });
+
+        cont.innerHTML = '';
+        const platforms = [
+            { id: 'edit-chk-fb', name: 'Facebook', color: '#1877F2', inputId: 'edit-link-fb' },
+            { id: 'edit-chk-tk', name: 'TikTok', color: '#000000', inputId: 'edit-link-tk' },
+            { id: 'edit-chk-yt', name: 'YouTube', color: '#FF0000', inputId: 'edit-link-yt' },
+            { id: 'edit-chk-line', name: 'Line OA', color: '#00C300', inputId: 'edit-link-line' }
+        ];
+        platforms.forEach(p => {
+            if(document.getElementById(p.id).checked) {
+                const div = document.createElement('div');
+                div.innerHTML = `<label style="font-size:0.85em; color:${p.color}">${p.name}</label>
+                                 <input type="url" id="${p.inputId}" class="form-control" placeholder="วางลิงก์ที่นี่..." value="${currentLinks[p.inputId] || ''}">`;
+                cont.appendChild(div);
+            }
+        });
+    }
+
+    function openEditModal(jobId) {
+        const job = marketingData.find(j => j.id === jobId);
+        if(!job) return;
+        document.getElementById('editJobId').value = job.id;
+        document.getElementById('editJobDate').value = job.date;
+        document.getElementById('editJobTitle').value = job.title;
+        document.getElementById('editJobType').value = job.type;
+        document.getElementById('editJobFormat').value = job.format;
+        
+        ['edit-chk-fb', 'edit-chk-tk', 'edit-chk-yt', 'edit-chk-line'].forEach(id => document.getElementById(id).checked = false);
+
+        job.platforms.forEach(p => {
+            if (p.name === 'Facebook') document.getElementById('edit-chk-fb').checked = true;
+            if (p.name === 'TikTok') document.getElementById('edit-chk-tk').checked = true;
+            if (p.name === 'YouTube') document.getElementById('edit-chk-yt').checked = true;
+            if (p.name === 'Line OA') document.getElementById('edit-chk-line').checked = true;
+        });
+
+        toggleEditLinkInputs();
+
+        job.platforms.forEach(p => {
+            if (p.name === 'Facebook' && document.getElementById('edit-link-fb')) document.getElementById('edit-link-fb').value = p.link;
+            if (p.name === 'TikTok' && document.getElementById('edit-link-tk')) document.getElementById('edit-link-tk').value = p.link;
+            if (p.name === 'YouTube' && document.getElementById('edit-link-yt')) document.getElementById('edit-link-yt').value = p.link;
+            if (p.name === 'Line OA' && document.getElementById('edit-link-line')) document.getElementById('edit-link-line').value = p.link;
+        });
+
+        document.getElementById('editJobModal').style.display = 'flex';
+    }
+
+    function closeEditModal() { document.getElementById('editJobModal').style.display = 'none'; }
+    
+    // 🟡 บันทึกการแก้ไข (ส่งไป Google Sheet)
+    async function saveEditJob() {
+        const id = parseInt(document.getElementById('editJobId').value);
+        const jobIndex = marketingData.findIndex(j => j.id === id);
+        if(jobIndex === -1) return;
+
+        let selected = [];
+        const platforms = [
+            { id: 'edit-chk-fb', name: 'Facebook', inputId: 'edit-link-fb' },
+            { id: 'edit-chk-tk', name: 'TikTok', inputId: 'edit-link-tk' },
+            { id: 'edit-chk-yt', name: 'YouTube', inputId: 'edit-link-yt' },
+            { id: 'edit-chk-line', name: 'Line OA', inputId: 'edit-link-line' }
+        ];
+        platforms.forEach(p => {
+            if(document.getElementById(p.id).checked) {
+                selected.push({ name: p.name, link: document.getElementById(p.inputId).value.trim() });
+            }
+        });
+
+        if(selected.length === 0) return alert('กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ!');
+
+        const updatedJob = {
+            action: 'edit',
+            id: id,
+            date: document.getElementById('editJobDate').value,
+            title: document.getElementById('editJobTitle').value,
+            type: document.getElementById('editJobType').value,
+            format: document.getElementById('editJobFormat').value,
+            platforms: selected,
+            totalViews: marketingData[jobIndex].totalViews
+        };
+
+        const btnSubmit = document.getElementById('btnSaveEdit');
+        const originalBtnText = btnSubmit.innerHTML;
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner"></span> กำลังแก้ไขข้อมูล...';
+
+        try {
+            await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedJob) });
+            
+            // อัปเดตใน LocalStorage
+            marketingData[jobIndex] = updatedJob;
+            localStorage.setItem('marketingData', JSON.stringify(marketingData));
+            
+            renderMainTable(); 
+            if(document.getElementById('allContentModal').style.display === 'flex') renderAllContentTable();
+            updateChart(); 
+            closeEditModal();
+            alert('✏️ แก้ไขข้อมูลสำเร็จ!');
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ เกิดข้อผิดพลาดในการเชื่อมต่อกับ Google Sheet (อัปเดตได้เฉพาะในเครื่อง)');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalBtnText;
+        }
+    }
+
+    // --- ฟอร์มสร้างงานใหม่ ---
+    function toggleLinkInputs() {
+        const cont = document.getElementById('linkInputsContainer');
+        cont.innerHTML = '';
+        ['chk-fb','chk-tk','chk-yt','chk-line'].forEach(id => {
+            const chk = document.getElementById(id);
+            if(chk.checked) {
+                const name = chk.value;
+                const div = document.createElement('div');
+                div.innerHTML = `<label style="font-size:0.85em; color:${platformColors[name]}">${name}</label>
+                                 <input type="url" id="link-${id}" class="form-control" placeholder="วางลิงก์ที่นี่...">`;
+                cont.appendChild(div);
+            }
+        });
+    }
+
+    // 🟢 บันทึกงานใหม่ (ส่งไป Google Sheet)
+    async function saveJob() {
+        const title = document.getElementById('jobTitle').value.trim();
+        const dateInput = document.getElementById('jobDate').value;
+        const type = document.getElementById('jobType').value;
+        const format = document.getElementById('jobFormat').value;
+        const btnSubmit = document.getElementById('btnSaveMain');
+
+        if (!dateInput) { alert('กรุณาเลือกวันที่โพสต์ด้วยครับ!'); return; }
+        if (!title) { alert('กรุณากรอกชื่อชิ้นงานด้วยครับ!'); return; }
+
+        let selectedPlatforms = [];
+        const platformCheckboxes = [
+            { chkId: 'chk-fb', name: 'Facebook', inputId: 'link-fb' },
+            { chkId: 'chk-tk', name: 'TikTok', inputId: 'link-tk' },
+            { chkId: 'chk-yt', name: 'YouTube', inputId: 'link-yt' },
+            { chkId: 'chk-line', name: 'Line OA', inputId: 'link-line' }
+        ];
+
+        platformCheckboxes.forEach(p => {
+            if (document.getElementById(p.chkId)?.checked) {
+                const linkInput = document.getElementById(p.inputId);
+                selectedPlatforms.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '' });
+            }
+        });
+
+        if (selectedPlatforms.length === 0) { alert('กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ!'); return; }
+
+        const newJob = { action: 'add', id: Date.now(), date: dateInput, title: title, type: type, format: format, platforms: selectedPlatforms, totalViews: 0 };
+
+        const originalBtnText = btnSubmit.innerHTML;
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึกข้อมูล...';
+
+        try {
+            await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newJob) });
+            
+            // เก็บลงเครื่อง
+            marketingData.push(newJob);
+            localStorage.setItem('marketingData', JSON.stringify(marketingData));
+
+            document.getElementById('jobTitle').value = '';
+            toggleLinkInputs(); 
+            renderMainTable();
+            if(document.getElementById('allContentModal').style.display === 'flex') renderAllContentTable();
+            updateChart();
+            alert('🎉 บันทึกข้อมูลใหม่สำเร็จ!');
+        } catch (error) {
+            console.error('Error!', error);
+            alert('❌ เกิดข้อผิดพลาดในการเชื่อมต่อกับ Google Sheet (บันทึกได้เฉพาะในเครื่อง)');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalBtnText;
+        }
+    }
+
+    // 🔴 ลบงาน (ส่งไป Google Sheet)
+    async function deleteJob(id) {
+        if(confirm('ต้องการลบชิ้นงานนี้อย่างถาวรใช่หรือไม่? (ระบบจะลบออกจาก Google Sheet ด้วย)')) {
+            try {
+                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: id }) });
+                
+                marketingData = marketingData.filter(j => j.id !== id); 
+                localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
+                
+                renderMainTable(); 
+                if(document.getElementById('allContentModal').style.display === 'flex') renderAllContentTable();
+                updateChart(); 
+                alert('🗑️ ลบข้อมูลสำเร็จ!');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ เกิดข้อผิดพลาด (ลบได้เฉพาะในเครื่อง กรุณาเช็ก Google Sheet อีกครั้ง)');
+            }
+        }
+    }
+
+    // --- กราฟ ---
+    function updateChart() {
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        let counts = new Array(12).fill(0);
+        marketingData.forEach(j => { const m = new Date(j.date).getMonth(); if(!isNaN(m)) counts[m]++; });
+        if(monthlyChartInstance) monthlyChartInstance.destroy();
+        monthlyChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],
+            datasets: [{ label: 'จำนวนงาน', data: counts, backgroundColor: '#4f46e5', borderRadius: 4 }]},
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
+
+    // --- ระบบพรีวิว & GDrive ---
+    function getGDriveEmbedHtml(url) {
+        const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        return m ? `<iframe src="https://drive.google.com/file/d/${m[1]}/preview" style="width:100%; height:300px; border:none; border-radius:8px; margin-top:10px; background:#f0f0f0;"></iframe>` : null;
+    }
+
+    function openPreviewModal(jobId) {
+        const job = marketingData.find(j => j.id === jobId);
+        if(!job) return;
+        document.getElementById('previewTitle').innerText = job.title;
+        const cont = document.getElementById('previewContentContainer');
+        cont.innerHTML = '<div style="text-align:center;"><span class="spinner" style="border-top-color:var(--primary)"></span> กำลังโหลด...</div>';
+        document.getElementById('previewModal').style.display = 'flex';
+        
+        Promise.all(job.platforms.filter(p => p.link).map(p => {
+            if(p.link.includes('drive.google.com')) return Promise.resolve({ name: p.name, link: p.link, iframeHtml: getGDriveEmbedHtml(p.link) });
+            return fetch(`https://api.microlink.io/?url=${encodeURIComponent(p.link)}`).then(r => r.json())
+                   .then(d => ({ name: p.name, link: p.link, img: d.data?.image?.url || d.data?.logo?.url })).catch(() => ({ name: p.name, link: p.link, img: '' }));
+        })).then(results => {
+            cont.innerHTML = results.map(r => {
+                let contentHtml = '';
+                if(r.iframeHtml) { contentHtml = r.iframeHtml; } 
+                else if(r.img) { contentHtml = `<img src="${r.img}" class="preview-img">`; } 
+                else { contentHtml = '<div style="background:#eee; padding:15px; text-align:center; color:#999; border-radius:6px; margin-top:10px;">ระบบแพลตฟอร์มป้องกันไม่ให้ดึงภาพ 🚫<br><span style="font-size:0.8em">กรุณากดปุ่มลิงก์ด้านล่างเพื่อเปิดดูในหน้าต่างใหม่</span></div>'; }
+                return `<div class="preview-box"><b>${r.name}</b><br><small><a href="${r.link}" target="_blank" style="color:var(--primary);">${r.link}</a></small>${contentHtml}</div>`;
+            }).join('');
+        });
+    }
+    function closePreviewModal() { document.getElementById('previewModal').style.display = 'none'; }
+
+    // --- ตาราง ---
+    function generateTableRows(data) {
+        if(data.length === 0) return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
+        return data.map(j => `
+            <tr>
+                <td style="white-space: nowrap;">${new Date(j.date).toLocaleDateString('en-GB')}</td>
+                <td><b>${j.title}</b><br><small style="color:#64748b">${j.type}</small></td>
+                <td><span class="badge" style="background:${j.format === 'Videos' ? '#10b981' : '#f59e0b'}">${j.format}</span></td>
+                <td>${j.platforms.map(p => `<span class="badge" style="background:${platformColors[p.name]}">${p.name}</span>`).join(' ')}</td>
+                <td>
+                    ${j.platforms.some(p => p.link) ? `<button class="btn-action btn-primary" style="margin-bottom:6px;" onclick="openPreviewModal(${j.id})">👁️ พรีวิว</button><br>` : '<span style="color:#aaa; font-size:0.85em;">(ไม่มีลิงก์)</span>'}
+                    ${j.platforms.filter(p => p.link).map(p => `<a href="${p.link}" target="_blank" class="btn-action" style="margin-bottom:4px; display:inline-block; text-decoration:none;">🔗 ${p.name}</a>`).join(' ')}
+                </td>
+                <td><b style="color:var(--primary); font-size:1.1em;">${j.totalViews.toLocaleString()}</b></td>
+                <td>
+                    <button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;">✏️ แก้ไข</button><br>
+                    <button class="btn-action btn-danger" onclick="deleteJob(${j.id})">🗑️ ลบ</button>
+                </td>
+            </tr>`).join('');
+    }
+
+    function renderMainTable() {
+        const filter = document.getElementById('monthFilter').value;
+        let data = (filter === 'all') ? marketingData : marketingData.filter(j => new Date(j.date).getMonth() === parseInt(filter));
+        data.sort((a,b) => new Date(b.date) - new Date(a.date));
+        document.getElementById('mainTableBody').innerHTML = generateTableRows(data.slice(0, 10));
+    }
+    function openAllContentModal() {
+        marketingData.sort((a,b) => new Date(b.date) - new Date(a.date));
+        document.getElementById('allTableBody').innerHTML = generateTableRows(marketingData);
+        document.getElementById('allContentModal').style.display = 'flex';
+    }
+    function closeAllContentModal() { document.getElementById('allContentModal').style.display = 'none'; }
+
+    // --- อัปเดตยอดวิว (จำลอง) ---
+    function updateAllViews(btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner"></span> กำลังดึงข้อมูล...';
+        btn.disabled = true;
+
+        setTimeout(() => {
+            marketingData = marketingData.map(job => {
+                if(job.platforms.some(p => p.link)) {
+                    job.totalViews += Math.floor(Math.random() * 1400) + 100;
+                }
+                return job;
+            });
+            localStorage.setItem('marketingData', JSON.stringify(marketingData));
+            renderMainTable();
+            if(document.getElementById('allContentModal').style.display === 'flex') renderAllContentTable();
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            alert('✅ อัปเดตยอดวิวจำลองสำเร็จ!');
+        }, 1500);
+    }
+
+    window.onload = () => {
+        document.getElementById('jobDate').value = new Date().toISOString().split('T')[0];
+        renderTargets(); toggleLinkInputs(); renderMainTable(); updateChart();
+    };
+    window.onclick = (e) => {
+        if(e.target.className === 'modal') {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        }
+    };
+</script>
+</body>
+</html>
