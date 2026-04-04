@@ -647,6 +647,7 @@
         }
     }
 
+
     // --- กราฟ ---
     function updateChart() {
         const ctx = document.getElementById('monthlyChart').getContext('2d');
@@ -737,6 +738,7 @@
         document.getElementById('allContentModal').style.display = 'flex';
     }
     function closeAllContentModal() { document.getElementById('allContentModal').style.display = 'none'; }
+
 
     window.onload = () => {
         document.getElementById('jobDate').value = new Date().toISOString().split('T')[0];
