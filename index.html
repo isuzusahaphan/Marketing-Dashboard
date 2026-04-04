@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketing Command Center - Isuzu SP</title>
+    <title>Marketing Dashboard Center - Isuzu SP</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <style>
@@ -73,7 +73,7 @@
 
         .target-setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
         
-        /* สไตล์ปุ่มเปลี่ยนหน้า (Pagination) */
+        /* 🌟 สไตล์ปุ่มเปลี่ยนหน้า (Pagination) 🌟 */
         .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); }
         .pagination button { padding: 6px 12px; border: 1px solid var(--border); background: white; border-radius: 4px; cursor: pointer; }
         .pagination button:hover:not(:disabled) { background: #f3f4f6; }
@@ -113,7 +113,7 @@
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
         <div>
-            <h1 style="color: var(--isuzu-red); margin-bottom: 5px; font-size: 1.8em;">Marketing Command Center</h1>
+            <h1 style="color: var(--isuzu-red); margin-bottom: 5px; font-size: 1.8em;">Marketing Dashboard Center</h1>
             <p style="color: var(--text-muted); margin: 0; font-size: 0.9em;">แดชบอร์ดติดตามผลงานและเป้าหมายการตลาด อีซูซุสหะภัณฑ์ ประจำปี 2026</p>
         </div>
         
@@ -433,22 +433,18 @@
     };
     let marketingData = JSON.parse(localStorage.getItem('marketingData')) || [];
     
-    // --- ตัวแปรสำหรับ Pagination และ Filter ---
     let currentPage = 1;
     const itemsPerPage = 10;
     let filteredAllData = [];
 
-    // --- 🌟 ระบบจัดการ Dropdown (ปิด/เปิด) 🌟 ---
     function toggleDropdown(id) {
         const dropdown = document.getElementById(id);
-        // ปิดอันอื่นก่อนเปิดอันใหม่
         document.querySelectorAll('.custom-select-dropdown').forEach(el => {
             if(el.id !== id) el.classList.remove('show');
         });
         dropdown.classList.toggle('show');
     }
 
-    // ปิด Dropdown ถ้ายกเมาส์ไปคลิกที่อื่น
     document.addEventListener('click', function(event) {
         const isClickInside = event.target.closest('.custom-select-wrapper');
         if (!isClickInside) {
@@ -458,7 +454,6 @@
         }
     });
 
-    // --- สลับโหมด ---
     let isExecutiveMode = true; 
     function toggleMode() {
         isExecutiveMode = !isExecutiveMode;
@@ -477,7 +472,6 @@
         setTimeout(() => { if (monthlyChartInstance) monthlyChartInstance.resize(); }, 350);
     }
 
-    // --- อัปเดตสถานะเดือนนี้ (เกจวัดพลัง) อิงตามกราฟ ---
     function updateMonthlyStatus() {
         const filterVal = document.getElementById('monthFilter').value;
         let targetMonth = new Date().getMonth();
@@ -644,7 +638,6 @@
         marketingData[jobIndex] = job;
         localStorage.setItem('marketingData', JSON.stringify(marketingData));
         applyFilters(); 
-        if(document.getElementById('allContentModal').style.display === 'flex') { updateAllContentTable(); }
         closeViewsModal();
 
         try {
@@ -718,7 +711,6 @@
         marketingData[jobIndex] = updatedJob;
         localStorage.setItem('marketingData', JSON.stringify(marketingData));
         applyFilters(); 
-        if(document.getElementById('allContentModal').style.display === 'flex') { updateAllContentTable(); }
         updateChart(); closeEditModal();
 
         try {
@@ -767,7 +759,6 @@
         localStorage.setItem('marketingData', JSON.stringify(marketingData));
         document.getElementById('jobTitle').value = '';
         toggleLinkInputs(); applyFilters(); 
-        if(document.getElementById('allContentModal').style.display === 'flex') { openAllContentModal(); }
         updateChart();
 
         try {
@@ -787,7 +778,6 @@
             marketingData = marketingData.filter(j => j.id !== id); 
             localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
             applyFilters(); 
-            if(document.getElementById('allContentModal').style.display === 'flex') { updateAllContentTable(); }
             updateChart(); 
                 
             try {
@@ -801,7 +791,6 @@
         }
     }
 
-    // --- กราฟ โชว์ตัวเลขด้านบนแท่ง ---
     function updateChart() {
         const ctx = document.getElementById('monthlyChart').getContext('2d');
         let counts = new Array(12).fill(0);
@@ -913,16 +902,14 @@
         }).join('');
     }
 
-    // --- 🌟 ระบบกรองข้อมูลขั้นสูง (Advanced Filtering) 🌟 ---
+    // 🌟 ระบบจัดการฟิลเตอร์ (เชื่อมหน้าแรกและหน้าดูทั้งหมด) 🌟
     function applyFilters() {
         const monthFilter = document.getElementById('monthFilter').value;
         
-        // ดึงค่าที่ติ๊ก Checkbox ไว้ทั้งหมด
         const formatChecked = Array.from(document.querySelectorAll('.filter-format:checked')).map(el => el.value);
         const platformChecked = Array.from(document.querySelectorAll('.filter-platform:checked')).map(el => el.value);
         const typeChecked = Array.from(document.querySelectorAll('.filter-type:checked')).map(el => el.value);
 
-        // วาดป้าย Tag แสดงว่ากำลังกรองอะไรอยู่
         const tagArea = document.getElementById('activeFiltersArea');
         let tagsHtml = '';
         if(formatChecked.length > 0) tagsHtml += formatChecked.map(f => `<span class="filter-tag">📐 ${f}</span>`).join('');
@@ -930,21 +917,16 @@
         if(typeChecked.length > 0) tagsHtml += typeChecked.map(t => `<span class="filter-tag">🏷️ ${t}</span>`).join('');
         tagArea.innerHTML = tagsHtml;
 
-        // เริ่มร่อนตะแกรงข้อมูล
         filteredAllData = marketingData.filter(j => {
-            // กรองเดือน
             if (monthFilter !== 'all') {
                 if (new Date(j.date).getMonth() !== parseInt(monthFilter)) return false;
             }
-            // กรองรูปแบบ (Videos, Pictures) -> ต้องตรงเป๊ะ 1 อัน
             if (formatChecked.length > 0) {
                 if (!formatChecked.includes(j.format)) return false;
             }
-            // กรองประเภทงาน (คู่บื้อ, ส่งมอบ ฯลฯ) -> ต้องตรงเป๊ะ 1 อัน
             if (typeChecked.length > 0) {
                 if (!typeChecked.includes(j.type)) return false;
             }
-            // กรองช่องทาง (FB, TK ฯลฯ) -> ต้องมีอย่างน้อย 1 ช่องทางที่ตรงกับที่ติ๊กไว้
             if (platformChecked.length > 0) {
                 const jobPlatforms = j.platforms.map(p => p.name);
                 const hasPlatform = platformChecked.some(p => jobPlatforms.includes(p));
@@ -953,25 +935,21 @@
             return true;
         });
 
-        // จัดเรียงวันที่ใหม่ล่าสุดขึ้นก่อน
         filteredAllData.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-        // อัปเดตตารางหน้าแรก (แสดงแค่ 10 แถวแรก)
         document.getElementById('mainTableBody').innerHTML = generateTableRows(filteredAllData.slice(0, 10));
         
-        // ถ้า Modal เปิดอยู่ ให้อัปเดตตารางข้างในด้วย
+        // ถ้า Modal "ดูทั้งหมด" เปิดอยู่ ให้อัปเดตข้อมูลด้วยเลย
         if(document.getElementById('allContentModal').style.display === 'flex') {
-            currentPage = 1; // รีเซ็ตหน้ากลับไป 1 ทุกครั้งที่เปลี่ยนฟิลเตอร์
-            updateAllContentTable(true); // true หมายถึง ข้อมูลถูกกรองเตรียมไว้แล้ว ไม่ต้องกรองซ้ำ
+            currentPage = 1;
+            updateAllContentTable(true);
         }
     }
 
-    // --- Pagination สำหรับ Modal "ดูทั้งหมด" ---
+    // 🌟 ระบบแบ่งหน้า (Pagination) 🌟
     function updateAllContentTable(isPreFiltered = false) {
-        // ถ้าไม่ได้กรองมาจาก applyFilters() ให้ดึงจากข้อมูลดิบมาเรียงใหม่
         if (!isPreFiltered) {
             filteredAllData = [...marketingData].sort((a,b) => new Date(b.date) - new Date(a.date));
-            // ล้างตัวกรองทั้งหมดกลับเป็นค่าเริ่มต้น
             document.getElementById('monthFilter').value = 'all';
             document.querySelectorAll('.filter-chk-label input').forEach(el => el.checked = false);
             document.getElementById('activeFiltersArea').innerHTML = '';
@@ -994,13 +972,13 @@
 
     function changePage(direction) {
         currentPage += direction;
-        updateAllContentTable(true); // true เพราะใช้ Data ที่โดน Filter ค้างไว้อยู่
+        updateAllContentTable(true); // บอกว่าใช้ข้อมูลที่ฟิลเตอร์แล้ว
         document.querySelector('#allContentModal .modal-content').scrollTop = 0;
     }
 
     function openAllContentModal() {
         currentPage = 1;
-        applyFilters(); // กรองก่อนโชว์ Modal เพื่อให้ตรงกับหน้าบ้าน
+        applyFilters(); 
         document.getElementById('allContentModal').style.display = 'flex';
     }
     
@@ -1016,7 +994,6 @@
         renderTargets(); toggleLinkInputs(); applyFilters(); updateChart();
     };
     
-    // คลิกปิด Modal ถ้ากดพื้นหลังดำ
     window.onclick = (e) => {
         if(e.target.className === 'modal') {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
