@@ -585,6 +585,8 @@
         
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
             <div class="header-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                <button class="btn-action" style="background: #ef4444; color: white; border: none;" onclick="syncLocalToCloud()">🚀 ซิงค์ข้อมูลในเครื่องขึ้น Sheet</button>
+                
                 <div style="font-size: 0.85em; color: var(--text-muted); font-weight: bold; background: var(--border); padding: 5px 10px; border-radius: 4px;">อีซูซุสหะภัณฑ์</div>
                 <button id="modeToggleBtn" class="btn-action" style="background: #10b981; color: white; border: none;" onclick="toggleMode()">👨‍💼 โหมดผู้บริหาร</button>
                 <button class="btn-action btn-primary" onclick="openTargetModal()">🎯 ตั้งค่าเป้าหมาย</button>
@@ -786,7 +788,6 @@
                     </div>
                     
                     <button class="btn-action" onclick="resetFilters()" style="color: #b91c1c; border-color: #fca5a5; background: #fee2e2;">🔄 ล้างตัวกรอง</button>
-                    
                     <button class="btn-action" style="margin-left: auto;" onclick="openAllContentModal()">ดูทั้งหมด</button>
                 </div>
                 
@@ -828,17 +829,8 @@
         <span class="close-modal" onclick="closeEditModal()">&times;</span>
         <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">✏️ แก้ไขข้อมูลชิ้นงาน</h2>
         <input type="hidden" id="editJobId">
-        
-        <div class="form-group">
-            <label>วันที่โพสต์</label>
-            <input type="date" id="editJobDate" class="form-control">
-        </div>
-        
-        <div class="form-group">
-            <label>ชื่อชิ้นงาน</label>
-            <input type="text" id="editJobTitle" class="form-control">
-        </div>
-        
+        <div class="form-group"><label>วันที่โพสต์</label><input type="date" id="editJobDate" class="form-control"></div>
+        <div class="form-group"><label>ชื่อชิ้นงาน</label><input type="text" id="editJobTitle" class="form-control"></div>
         <div class="form-group">
             <label>ประเภทงาน</label>
             <select id="editJobType" class="form-control">
@@ -855,7 +847,6 @@
                 <option value="แต่ละวันสหะภัณฑ์">แต่ละวันสหะภัณฑ์</option>
             </select>
         </div>
-        
         <div class="form-group">
             <label>รูปแบบ</label>
             <select id="editJobFormat" class="form-control">
@@ -863,7 +854,6 @@
                 <option value="Pictures">🖼️ Pictures</option>
             </select>
         </div>
-        
         <div class="form-group">
             <label>ช่องทางที่โพสต์</label>
             <div class="checkbox-group">
@@ -873,9 +863,7 @@
                 <label class="checkbox-label"><input type="checkbox" id="edit-chk-line" value="Line OA" onchange="toggleEditLinkInputs()"> Line OA</label>
             </div>
         </div>
-        
         <div id="editLinksArea" class="link-inputs-container"></div>
-        
         <button id="btnSaveEdit" class="btn-submit" onclick="saveEditJob()">💾 บันทึกการแก้ไข</button>
     </div>
 </div>
@@ -903,12 +891,10 @@
 <div id="allContentModal" class="modal">
     <div class="modal-content large" style="height: 85vh; display: flex; flex-direction: column;">
         <span class="close-modal" onclick="closeAllContentModal()">&times;</span>
-        
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 15px;">
             <h2 style="color: var(--text-main); margin: 0;">📋 รายการคอนเทนต์ทั้งหมด (กรองข้อมูล)</h2>
             <span id="allContentCount" style="color: var(--text-muted); font-size: 0.9em; font-weight: bold;"></span>
         </div>
-        
         <div style="overflow: auto; flex: 1;">
             <table style="margin-top: 0;">
                 <thead>
@@ -925,7 +911,6 @@
                 <tbody id="allTableBody"></tbody>
             </table>
         </div>
-        
         <div class="pagination">
             <button id="btnPrevPage" onclick="changePage(-1)">◀ ก่อนหน้า</button>
             <span id="pageIndicator" style="font-weight: bold; font-size: 0.9em;">หน้า 1</span>
@@ -935,102 +920,63 @@
 </div>
 
 <script>
-    // 📍 URL ของ Google Apps Script (ใส่ URL ตัวล่าสุดที่นี่ครับ) 📍
+    // 📍 เอา URL ใหม่จาก Google Apps Script ที่ใส่ doGet() มาวางตรงนี้ครับ 📍
     const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwfYj6D7uFq3ykPFOkbmUofXtPuApUi4-tT5BvcTQHJUSMHSW0qGREPE3wRqbInk-UPSw/exec';
 
-    // Register Chart Plugin
     Chart.register(ChartDataLabels);
-
     let monthlyChartInstance = null;
     
-    // Colors Definitions
-    const platformColors = { 
-        'Facebook': '#1877F2', 
-        'TikTok': '#000000', 
-        'YouTube': '#FF0000', 
-        'Line OA': '#00C300' 
-    };
-    
+    const platformColors = { 'Facebook': '#1877F2', 'TikTok': '#000000', 'YouTube': '#FF0000', 'Line OA': '#00C300' };
     const typeColors = {
-        'ส่งมอบรถใหม่': '#10b981', 
-        'คู่บื้อ': '#8b5cf6', 
-        'ไปกับสหะภัณฑ์': '#06b6d4',
-        'โหนกระบะ': '#f59e0b', 
-        'บรรทุกมุก': '#ec4899', 
-        'EVENT / เทศกาล': '#f43f5e',
-        'วันหยุด': '#94a3b8', 
-        'ตรีเพชร': '#1e40af', 
-        'โปรศูนย์บริการ': '#0f766e',
-        'โปรฝ่ายขาย': '#b45309', 
-        'แต่ละวันสหะภัณฑ์': '#6b21a8'
+        'ส่งมอบรถใหม่': '#10b981', 'คู่บื้อ': '#8b5cf6', 'ไปกับสหะภัณฑ์': '#06b6d4',
+        'โหนกระบะ': '#f59e0b', 'บรรทุกมุก': '#ec4899', 'EVENT / เทศกาล': '#f43f5e',
+        'วันหยุด': '#94a3b8', 'ตรีเพชร': '#1e40af', 'โปรศูนย์บริการ': '#0f766e',
+        'โปรฝ่ายขาย': '#b45309', 'แต่ละวันสหะภัณฑ์': '#6b21a8'
     };
 
-    // State Variables
     let platformTargets = JSON.parse(localStorage.getItem('platformTargets')) || {
-        'Facebook': { current: 0, target: 100 }, 
-        'TikTok': { current: 0, target: 100 },
-        'YouTube': { current: 0, target: 100 }, 
-        'Line OA': { current: 0, target: 100 }
+        'Facebook': { current: 0, target: 100 }, 'TikTok': { current: 0, target: 100 },
+        'YouTube': { current: 0, target: 100 }, 'Line OA': { current: 0, target: 100 }
     };
     
-    let marketingData = []; // ข้อมูลเริ่มต้นเป็น array ว่าง เดี๋ยวรอโหลดจาก Google Sheet
-    
+    let marketingData = []; // จะถูกแทนที่ด้วยข้อมูลจาก Sheet ตอนโหลด
     let currentPage = 1;
     const itemsPerPage = 10;
     let filteredAllData = [];
 
-    // 🌟 รายการรูปภาพ Mascot (นำมาใช้กับหลอดสเตตัสเดือนนี้เท่านั้น) 🌟
     const mascots = [
-        'ISZ-Mascot-Master.png',
-        'ISZ-Pose-01.png',
-        'ISZ-Pose-02.png',
-        'ISZ-Pose-03.png',
-        'ISZ-Pose-04.png',
-        'ISZ-Pose-05.png',
-        'ISZ-Pose-06.png',
-        'ISZ-Pose-07.png',
-        'ISZ-Pose-08.png'
+        'ISZ-Mascot-Master.png', 'ISZ-Pose-01.png', 'ISZ-Pose-02.png',
+        'ISZ-Pose-03.png', 'ISZ-Pose-04.png', 'ISZ-Pose-05.png',
+        'ISZ-Pose-06.png', 'ISZ-Pose-07.png', 'ISZ-Pose-08.png'
     ];
 
-    // 🌟 ฟังก์ชันสุ่มมาสคอต (เฉพาะหลอดรายเดือน) 🌟
     function setRandomMascots() {
         const mascotImgElement = document.getElementById('monthlyMascot');
         if (mascotImgElement) {
-            const randomMascot = mascots[Math.floor(Math.random() * mascots.length)];
-            mascotImgElement.src = randomMascot;
+            mascotImgElement.src = mascots[Math.floor(Math.random() * mascots.length)];
         }
     }
 
-    // --- 🌟 ระบบจัดการ Dropdown Filters 🌟 ---
     function toggleDropdown(id) {
         const dropdown = document.getElementById(id);
-        
         document.querySelectorAll('.custom-select-dropdown').forEach(el => {
-            if(el.id !== id) {
-                el.classList.remove('show');
-            }
+            if(el.id !== id) el.classList.remove('show');
         });
-        
         dropdown.classList.toggle('show');
     }
 
     document.addEventListener('click', function(event) {
         const isClickInside = event.target.closest('.custom-select-wrapper');
         if (!isClickInside) {
-            document.querySelectorAll('.custom-select-dropdown').forEach(el => {
-                el.classList.remove('show');
-            });
+            document.querySelectorAll('.custom-select-dropdown').forEach(el => { el.classList.remove('show'); });
         }
     });
 
-    // --- 🌟 ระบบสลับโหมด 🌟 ---
     let isExecutiveMode = true; 
-    
     function toggleMode() {
         isExecutiveMode = !isExecutiveMode;
         const grid = document.getElementById('mainContentGrid');
         const btn = document.getElementById('modeToggleBtn');
-        
         if (isExecutiveMode) {
             grid.classList.add('executive-mode');
             btn.innerHTML = '👨‍💼 โหมดผู้บริหาร';
@@ -1040,36 +986,23 @@
             btn.innerHTML = '📝 โหมดบันทึกงาน';
             btn.style.background = '#f59e0b'; 
         }
-        
-        setTimeout(() => { 
-            if (monthlyChartInstance) {
-                monthlyChartInstance.resize(); 
-            }
-        }, 350);
+        setTimeout(() => { if (monthlyChartInstance) monthlyChartInstance.resize(); }, 350);
     }
 
-    // --- 🌟 อัปเดตสถานะเดือนนี้ และกำหนดสีหลอดพร้อมแอนิเมชัน 🌟 ---
     function updateMonthlyStatus() {
         const filterVal = document.getElementById('monthFilter').value;
         let targetMonth = new Date().getMonth();
         let targetYear = new Date().getFullYear();
 
-        if (filterVal !== 'all') {
-            targetMonth = parseInt(filterVal);
-        }
+        if (filterVal !== 'all') targetMonth = parseInt(filterVal);
         
         let currentMonthCount = 0;
-        
         marketingData.forEach(j => {
             const d = new Date(j.date);
             if (filterVal === 'all') {
-                if (d.getMonth() === targetMonth && d.getFullYear() === targetYear) {
-                    currentMonthCount++;
-                }
+                if (d.getMonth() === targetMonth && d.getFullYear() === targetYear) currentMonthCount++;
             } else {
-                if (d.getMonth() === targetMonth) {
-                    currentMonthCount++;
-                }
+                if (d.getMonth() === targetMonth) currentMonthCount++;
             }
         });
 
@@ -1078,22 +1011,20 @@
 
         if (currentMonthCount < 25) {
             statusText = `วอร์มนิ้วอยู่ฮะ 🥶 (เป้าแรก 25)`;
-            barBgGradient = "linear-gradient(90deg, #9ca3af, #d1d5db, #9ca3af)"; // สีเทา
+            barBgGradient = "linear-gradient(90deg, #9ca3af, #d1d5db, #9ca3af)";
         } else if (currentMonthCount < 50) {
             statusText = `ทรงอย่างแบด มาตรฐานเป๊ะ 🤙 (เป้าต่อไป 50)`;
-            barBgGradient = "linear-gradient(90deg, #3b82f6, #93c5fd, #3b82f6)"; // สีฟ้า
+            barBgGradient = "linear-gradient(90deg, #3b82f6, #93c5fd, #3b82f6)";
         } else if (currentMonthCount < 80) {
             statusText = `ปั่นยับๆ เอาเรื่องจัด 🔥 (เป้าหมายสูงสุด 80)`;
-            barBgGradient = "linear-gradient(90deg, #f59e0b, #fcd34d, #f59e0b)"; // สีส้ม
+            barBgGradient = "linear-gradient(90deg, #f59e0b, #fcd34d, #f59e0b)";
         } else {
             statusText = `เดือดจัด ปลัดบอก! ทะลุหลอดไปเลย 🚀💯`;
-            barBgGradient = "linear-gradient(90deg, #ef4444, #f43f5e, #ef4444)"; // สีแดง
+            barBgGradient = "linear-gradient(90deg, #ef4444, #f43f5e, #ef4444)";
         }
 
         let pct = (currentMonthCount / 80) * 100;
-        if (pct > 100) {
-            pct = 100;
-        }
+        if (pct > 100) pct = 100;
 
         let monthNameText = filterVal === 'all' ? "เดือนนี้" : document.getElementById('monthFilter').options[document.getElementById('monthFilter').selectedIndex].text.split(' ')[0];
 
@@ -1105,50 +1036,30 @@
         bar.style.background = barBgGradient;
     }
 
-    // --- 🌟 จัดการเป้าหมาย 🌟 ---
     function openTargetModal() {
         const area = document.getElementById('targetInputsArea');
         area.innerHTML = '';
-        
         Object.keys(platformTargets).forEach(p => {
             const div = document.createElement('div');
             div.className = 'target-setup-grid';
-            div.innerHTML = `
-                <div>
-                    <label style="color:${platformColors[p]}">${p} ปัจจุบัน</label>
-                    <input type="number" id="cur-input-${p}" value="${platformTargets[p].current}" class="form-control">
-                </div>
-                <div>
-                    <label>เป้าหมาย</label>
-                    <input type="number" id="tar-input-${p}" value="${platformTargets[p].target}" class="form-control">
-                </div>
-            `;
+            div.innerHTML = `<div><label style="color:${platformColors[p]}">${p} ปัจจุบัน</label><input type="number" id="cur-input-${p}" value="${platformTargets[p].current}" class="form-control"></div>
+                             <div><label>เป้าหมาย</label><input type="number" id="tar-input-${p}" value="${platformTargets[p].target}" class="form-control"></div>`;
             area.appendChild(div);
         });
-        
         document.getElementById('targetModal').style.display = 'flex';
     }
-
-    function closeTargetModal() { 
-        document.getElementById('targetModal').style.display = 'none'; 
-    }
-
+    function closeTargetModal() { document.getElementById('targetModal').style.display = 'none'; }
     function saveTargets() {
         Object.keys(platformTargets).forEach(p => {
             platformTargets[p].current = parseInt(document.getElementById(`cur-input-${p}`).value) || 0;
             platformTargets[p].target = parseInt(document.getElementById(`tar-input-${p}`).value) || 1;
         });
-        
         localStorage.setItem('platformTargets', JSON.stringify(platformTargets));
-        
         const nowStr = new Date().toLocaleDateString('en-GB'); 
         localStorage.setItem('targetLastUpdated', nowStr);
         document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${nowStr}`;
-
-        renderTargets(); 
-        closeTargetModal();
+        renderTargets(); closeTargetModal();
     }
-
     function renderTargets() {
         Object.keys(platformTargets).forEach(p => {
             const pct = Math.round((platformTargets[p].current / platformTargets[p].target) * 100);
@@ -1159,34 +1070,25 @@
         });
     }
 
-    // --- 🌟 จัดการฟอร์มลิงก์ 🌟 ---
     function toggleEditLinkInputs() {
         const cont = document.getElementById('editLinksArea');
         const currentLinks = {};
-        
         ['edit-link-fb','edit-link-tk','edit-link-yt','edit-link-line'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) {
-                currentLinks[id] = el.value;
-            }
+            if (el) currentLinks[id] = el.value;
         });
-
         cont.innerHTML = '';
-        
         const platforms = [
             { id: 'edit-chk-fb', name: 'Facebook', color: '#1877F2', inputId: 'edit-link-fb' },
             { id: 'edit-chk-tk', name: 'TikTok', color: '#000000', inputId: 'edit-link-tk' },
             { id: 'edit-chk-yt', name: 'YouTube', color: '#FF0000', inputId: 'edit-link-yt' },
             { id: 'edit-chk-line', name: 'Line OA', color: '#00C300', inputId: 'edit-link-line' }
         ];
-        
         platforms.forEach(p => {
             if (document.getElementById(p.id).checked) {
                 const div = document.createElement('div');
-                div.innerHTML = `
-                    <label style="font-size:0.85em; color:${p.color}">${p.name}</label>
-                    <input type="text" id="${p.inputId}" class="form-control" placeholder="วางลิงก์ (เช่น https://...)" value="${currentLinks[p.inputId] || ''}">
-                `;
+                div.innerHTML = `<label style="font-size:0.85em; color:${p.color}">${p.name}</label>
+                                 <input type="text" id="${p.inputId}" class="form-control" placeholder="วางลิงก์ (เช่น https://...)" value="${currentLinks[p.inputId] || ''}">`;
                 cont.appendChild(div);
             }
         });
@@ -1195,53 +1097,39 @@
     function toggleLinkInputs() {
         const cont = document.getElementById('linkInputsContainer');
         cont.innerHTML = '';
-        
         const platforms = [
             { id: 'chk-fb', name: 'Facebook', color: '#1877F2', inputId: 'link-fb' },
             { id: 'chk-tk', name: 'TikTok', color: '#000000', inputId: 'link-tk' },
             { id: 'chk-yt', name: 'YouTube', color: '#FF0000', inputId: 'link-yt' },
             { id: 'chk-line', name: 'Line OA', color: '#00C300', inputId: 'link-line' }
         ];
-        
         platforms.forEach(p => {
             if (document.getElementById(p.id).checked) {
                 const div = document.createElement('div');
-                div.innerHTML = `
-                    <label style="font-size:0.85em; color:${p.color}">${p.name}</label>
-                    <input type="text" id="${p.inputId}" class="form-control" placeholder="วางลิงก์ (เช่น https://...)">
-                `;
+                div.innerHTML = `<label style="font-size:0.85em; color:${p.color}">${p.name}</label>
+                                 <input type="text" id="${p.inputId}" class="form-control" placeholder="วางลิงก์ (เช่น https://...)">`;
                 cont.appendChild(div);
             }
         });
     }
 
-    // --- 🌟 จัดการยอดวิว 🌟 ---
     function openViewsModal(jobId) {
         const job = marketingData.find(j => j.id === jobId);
         if (!job) return;
-        
         document.getElementById('viewsTitle').innerText = job.title;
         document.getElementById('viewsJobId').value = job.id;
-        
         const cont = document.getElementById('viewsContentContainer');
         cont.innerHTML = '';
-        
         job.platforms.forEach((p, idx) => {
             const div = document.createElement('div');
             div.className = 'form-group';
-            div.innerHTML = `
-                <label style="color:${platformColors[p.name]}">${p.name} (ยอดวิว)</label>
-                <input type="number" id="view-input-${idx}" class="form-control" placeholder="ระบุตัวเลขยอดวิว" value="${p.views || 0}">
-            `;
+            div.innerHTML = `<label style="color:${platformColors[p.name]}">${p.name} (ยอดวิว)</label>
+                             <input type="number" id="view-input-${idx}" class="form-control" placeholder="ระบุตัวเลขยอดวิว" value="${p.views || 0}">`;
             cont.appendChild(div);
         });
-        
         document.getElementById('viewsModal').style.display = 'flex';
     }
-
-    function closeViewsModal() { 
-        document.getElementById('viewsModal').style.display = 'none'; 
-    }
+    function closeViewsModal() { document.getElementById('viewsModal').style.display = 'none'; }
     
     async function saveViews() {
         const id = parseInt(document.getElementById('viewsJobId').value);
@@ -1250,81 +1138,56 @@
 
         let job = marketingData[jobIndex];
         let total = 0;
-        
         job.platforms.forEach((p, idx) => {
             let v = parseInt(document.getElementById(`view-input-${idx}`).value) || 0;
-            p.views = v; 
-            total += v;
+            p.views = v; total += v;
         });
-        
         job.totalViews = total; 
 
         const btnSubmit = document.getElementById('btnSaveViews');
         const originalText = btnSubmit.innerHTML;
-        btnSubmit.disabled = true; 
-        btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+        btnSubmit.disabled = true; btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
 
         marketingData[jobIndex] = job;
-        localStorage.setItem('marketingData', JSON.stringify(marketingData));
-        applyFilters(); 
-        closeViewsModal();
+        applyFilters(); closeViewsModal();
 
         try {
             const updatedJob = { ...job, action: 'edit' }; 
             if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-                await fetch(GOOGLE_SHEET_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                    body: JSON.stringify(updatedJob) 
-                });
+                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(updatedJob) });
             }
         } catch (error) {
-            console.error(error); 
-            alert('❌ เซฟลงเครื่องสำเร็จ แต่ส่งไป Google Sheet ไม่สำเร็จ');
+            console.error(error); alert('❌ ขัดข้อง');
         } finally {
-            btnSubmit.disabled = false; 
-            btnSubmit.innerHTML = originalText;
+            btnSubmit.disabled = false; btnSubmit.innerHTML = originalText;
         }
     }
 
-    // --- 🌟 จัดการแก้ไขงาน 🌟 ---
     function openEditModal(jobId) {
         const job = marketingData.find(j => j.id === jobId);
         if (!job) return;
-        
         document.getElementById('editJobId').value = job.id;
         document.getElementById('editJobDate').value = job.date;
         document.getElementById('editJobTitle').value = job.title;
         document.getElementById('editJobType').value = job.type;
         document.getElementById('editJobFormat').value = job.format;
-        
-        ['edit-chk-fb', 'edit-chk-tk', 'edit-chk-yt', 'edit-chk-line'].forEach(id => {
-            document.getElementById(id).checked = false;
-        });
-        
+        ['edit-chk-fb', 'edit-chk-tk', 'edit-chk-yt', 'edit-chk-line'].forEach(id => { document.getElementById(id).checked = false; });
         job.platforms.forEach(p => {
             if (p.name === 'Facebook') document.getElementById('edit-chk-fb').checked = true;
             if (p.name === 'TikTok') document.getElementById('edit-chk-tk').checked = true;
             if (p.name === 'YouTube') document.getElementById('edit-chk-yt').checked = true;
             if (p.name === 'Line OA') document.getElementById('edit-chk-line').checked = true;
         });
-        
         toggleEditLinkInputs();
-        
         job.platforms.forEach(p => {
             if (p.name === 'Facebook' && document.getElementById('edit-link-fb')) document.getElementById('edit-link-fb').value = p.link;
             if (p.name === 'TikTok' && document.getElementById('edit-link-tk')) document.getElementById('edit-link-tk').value = p.link;
             if (p.name === 'YouTube' && document.getElementById('edit-link-yt')) document.getElementById('edit-link-yt').value = p.link;
             if (p.name === 'Line OA' && document.getElementById('edit-link-line')) document.getElementById('edit-link-line').value = p.link;
         });
-        
         document.getElementById('editJobModal').style.display = 'flex';
     }
-
-    function closeEditModal() { 
-        document.getElementById('editJobModal').style.display = 'none'; 
-    }
+    function closeEditModal() { document.getElementById('editJobModal').style.display = 'none'; }
     
     async function saveEditJob() {
         const id = parseInt(document.getElementById('editJobId').value);
@@ -1338,66 +1201,38 @@
             { id: 'edit-chk-yt', name: 'YouTube', inputId: 'edit-link-yt' },
             { id: 'edit-chk-line', name: 'Line OA', inputId: 'edit-link-line' }
         ];
-        
         platforms.forEach(p => {
             if (document.getElementById(p.id).checked) {
                 const existingPlatform = marketingData[jobIndex].platforms.find(ep => ep.name === p.name);
                 const oldViews = existingPlatform ? (existingPlatform.views || 0) : 0;
                 const linkInput = document.getElementById(p.inputId);
-                const linkValue = linkInput ? linkInput.value.trim() : '';
-                selected.push({ name: p.name, link: linkValue, views: oldViews });
+                selected.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '', views: oldViews });
             }
         });
-        
-        if (selected.length === 0) {
-            return alert('กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ!');
-        }
-        
+        if (selected.length === 0) return alert('กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ!');
         const newTotalViews = selected.reduce((sum, p) => sum + p.views, 0);
 
-        const updatedJob = { 
-            action: 'edit', 
-            id: id, 
-            date: document.getElementById('editJobDate').value, 
-            title: document.getElementById('editJobTitle').value, 
-            type: document.getElementById('editJobType').value, 
-            format: document.getElementById('editJobFormat').value, 
-            platforms: selected, 
-            totalViews: newTotalViews 
-        };
+        const updatedJob = { action: 'edit', id: id, date: document.getElementById('editJobDate').value, title: document.getElementById('editJobTitle').value, type: document.getElementById('editJobType').value, format: document.getElementById('editJobFormat').value, platforms: selected, totalViews: newTotalViews };
 
         const btnSubmit = document.getElementById('btnSaveEdit');
         const originalBtnText = btnSubmit.innerHTML;
-        btnSubmit.disabled = true; 
-        btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+        btnSubmit.disabled = true; btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
 
         marketingData[jobIndex] = updatedJob;
-        localStorage.setItem('marketingData', JSON.stringify(marketingData));
-        
-        applyFilters(); 
-        updateChart(); 
-        closeEditModal();
+        applyFilters(); updateChart(); closeEditModal();
 
         try {
             if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-                await fetch(GOOGLE_SHEET_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                    body: JSON.stringify(updatedJob) 
-                });
+                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(updatedJob) });
             }
             alert('✏️ แก้ไขข้อมูลสำเร็จ!');
         } catch (error) {
-            console.error('Error:', error); 
-            alert('❌ แก้ไขสำเร็จ! (แต่บันทึกได้เฉพาะในเครื่อง เนื่องจากมีปัญหาการเชื่อมต่อ Sheet)');
+            console.error('Error:', error); alert('❌ สำเร็จฝั่งเว็บ แต่ส่ง Sheet ไม่เข้า');
         } finally {
-            btnSubmit.disabled = false; 
-            btnSubmit.innerHTML = originalBtnText;
+            btnSubmit.disabled = false; btnSubmit.innerHTML = originalBtnText;
         }
     }
 
-    // --- 🌟 จัดการเพิ่มงานใหม่ 🌟 ---
     async function saveJob() {
         const title = document.getElementById('jobTitle').value.trim();
         const dateInput = document.getElementById('jobDate').value;
@@ -1405,10 +1240,7 @@
         const format = document.getElementById('jobFormat').value;
         const btnSubmit = document.getElementById('btnSaveMain');
 
-        if (!dateInput || !title) { 
-            alert('กรุณากรอกข้อมูลให้ครบครับ!'); 
-            return; 
-        }
+        if (!dateInput || !title) return alert('กรุณากรอกข้อมูลให้ครบครับ!');
 
         let selectedPlatforms = [];
         const platformCheckboxes = [
@@ -1425,463 +1257,266 @@
             }
         });
 
-        if (selectedPlatforms.length === 0) { 
-            alert('กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ!'); 
-            return; 
-        }
+        if (selectedPlatforms.length === 0) return alert('กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ!');
 
-        const newJob = { 
-            action: 'add', 
-            id: Date.now(), 
-            date: dateInput, 
-            title: title, 
-            type: type, 
-            format: format, 
-            platforms: selectedPlatforms, 
-            totalViews: 0 
-        };
-        
+        const newJob = { action: 'add', id: Date.now(), date: dateInput, title: title, type: type, format: format, platforms: selectedPlatforms, totalViews: 0 };
         const originalBtnText = btnSubmit.innerHTML;
-        btnSubmit.disabled = true; 
-        btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึกข้อมูล...';
+        btnSubmit.disabled = true; btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
 
         marketingData.push(newJob);
-        localStorage.setItem('marketingData', JSON.stringify(marketingData));
-        
         document.getElementById('jobTitle').value = '';
-        toggleLinkInputs(); 
-        
-        setRandomMascots();
-        applyFilters(); 
-        updateChart();
+        toggleLinkInputs(); setRandomMascots(); applyFilters(); updateChart();
 
         try {
             if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-                await fetch(GOOGLE_SHEET_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                    body: JSON.stringify(newJob) 
-                });
+                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(newJob) });
             }
-            alert('🎉 บันทึกข้อมูลใหม่สำเร็จ!');
+            alert('🎉 บันทึกสำเร็จ!');
         } catch (error) {
-            console.error('Error!', error); 
-            alert('❌ บันทึกสำเร็จ! (แต่บันทึกลงในเครื่องเท่านั้น โปรดเช็กการตั้งค่า Google Sheet)');
+            console.error('Error!', error); alert('❌ บันทึกหน้าเว็บสำเร็จ แต่เข้า Sheet ไม่ได้');
         } finally {
-            btnSubmit.disabled = false; 
-            btnSubmit.innerHTML = originalBtnText;
+            btnSubmit.disabled = false; btnSubmit.innerHTML = originalBtnText;
         }
     }
 
     async function deleteJob(id) {
-        if (confirm('ต้องการลบชิ้นงานนี้อย่างถาวรใช่หรือไม่? (ระบบจะลบออกจาก Google Sheet ด้วย)')) {
+        if (confirm('ลบถาวร?')) {
             marketingData = marketingData.filter(j => j.id !== id); 
-            localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
-            
-            setRandomMascots();
-            applyFilters(); 
-            updateChart(); 
-                
+            setRandomMascots(); applyFilters(); updateChart(); 
             try {
                 if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-                    await fetch(GOOGLE_SHEET_URL, { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                        body: JSON.stringify({ action: 'delete', id: id }) 
-                    });
+                    await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'delete', id: id }) });
                 }
-                alert('🗑️ ลบข้อมูลสำเร็จ!');
+                alert('🗑️ ลบสำเร็จ!');
             } catch (error) {
-                console.error('Error:', error); 
-                alert('❌ ลบในเครื่องสำเร็จ (แต่ใน Google Sheet อาจยังอยู่ โปรดลบเองอีกครั้ง)');
+                console.error('Error:', error); alert('❌ ลบหน้าเว็บสำเร็จ แต่ Sheet ไม่ลบให้');
             }
         }
     }
 
-    // --- 🌟 ฟังก์ชันวาดกราฟแบบ Dynamic Gradient 🌟 ---
     function getBarGradient(context) {
         const chart = context.chart;
         const {ctx, chartArea} = chart;
-        
-        if (!chartArea) {
-            return '#4f46e5'; 
-        }
-        
+        if (!chartArea) return '#4f46e5'; 
         const value = context.raw;
         const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-        
-        if (value < 25) {
-            gradient.addColorStop(0, '#9ca3af');
-            gradient.addColorStop(1, '#cbd5e1'); // สีเทา
-        } else if (value < 50) {
-            gradient.addColorStop(0, '#3b82f6');
-            gradient.addColorStop(1, '#93c5fd'); // สีฟ้า
-        } else if (value < 80) {
-            gradient.addColorStop(0, '#f59e0b');
-            gradient.addColorStop(1, '#fcd34d'); // สีส้ม
-        } else {
-            gradient.addColorStop(0, '#ef4444');
-            gradient.addColorStop(1, '#fda4af'); // สีแดง
-        }
-        
+        if (value < 25) { gradient.addColorStop(0, '#9ca3af'); gradient.addColorStop(1, '#cbd5e1'); } 
+        else if (value < 50) { gradient.addColorStop(0, '#3b82f6'); gradient.addColorStop(1, '#93c5fd'); } 
+        else if (value < 80) { gradient.addColorStop(0, '#f59e0b'); gradient.addColorStop(1, '#fcd34d'); } 
+        else { gradient.addColorStop(0, '#ef4444'); gradient.addColorStop(1, '#fda4af'); }
         return gradient;
     }
 
     function updateChart() {
         const ctx = document.getElementById('monthlyChart').getContext('2d');
         let counts = new Array(12).fill(0);
-        
-        marketingData.forEach(j => { 
-            const m = new Date(j.date).getMonth(); 
-            if (!isNaN(m)) {
-                counts[m]++; 
-            }
-        });
-        
-        if (monthlyChartInstance) {
-            monthlyChartInstance.destroy();
-        }
+        marketingData.forEach(j => { const m = new Date(j.date).getMonth(); if (!isNaN(m)) counts[m]++; });
+        if (monthlyChartInstance) monthlyChartInstance.destroy();
         
         monthlyChartInstance = new Chart(ctx, {
             type: 'bar',
-            data: { 
-                labels: ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],
-                datasets: [{ 
-                    label: 'จำนวนงาน', 
-                    data: counts, 
-                    backgroundColor: function(context) {
-                        return getBarGradient(context);
-                    },
-                    borderRadius: 4 
-                }]
-            },
+            data: { labels: ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'], datasets: [{ label: 'จำนวนงาน', data: counts, backgroundColor: function(context) { return getBarGradient(context); }, borderRadius: 4 }] },
             options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                
-                // 🌟 ระบบคลิกที่กราฟเพื่อกรองข้อมูล 🌟
+                responsive: true, maintainAspectRatio: false, 
                 onClick: (e, elements) => {
                     if (elements.length > 0) {
-                        const monthIndex = elements[0].index;
-                        document.getElementById('monthFilter').value = monthIndex;
-                        applyFilters();
-                        updateMonthlyStatus();
-                        setRandomMascots();
+                        document.getElementById('monthFilter').value = elements[0].index;
+                        applyFilters(); updateMonthlyStatus(); setRandomMascots();
                     }
                 },
-                // เปลี่ยนเคอร์เซอร์เป็นรูปนิ้วตอนชี้ที่แท่งกราฟ
-                onHover: (event, chartElement) => {
-                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
-                },
-                
-                plugins: { 
-                    legend: { 
-                        display: false 
-                    },
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        color: '#4f46e5',
-                        font: { weight: 'bold' },
-                        formatter: function(value) { 
-                            return value > 0 ? value : ''; 
-                        } 
-                    }
-                },
-                layout: { 
-                    padding: { top: 25 } 
-                } 
+                onHover: (event, chartElement) => { event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'; },
+                plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', color: '#4f46e5', font: { weight: 'bold' }, formatter: function(value) { return value > 0 ? value : ''; } } },
+                layout: { padding: { top: 25 } } 
             }
         });
-        
         updateMonthlyStatus();
     }
 
-    // --- 🌟 จัดการภาพพรีวิว 🌟 ---
     function getGDriveEmbedHtml(url) {
         const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        if (m) {
-            return `<iframe src="https://drive.google.com/file/d/${m[1]}/preview" style="width:100%; height:300px; border:none; border-radius:8px; margin-top:10px; background:#f0f0f0;"></iframe>`;
-        }
-        return null;
+        return m ? `<iframe src="https://drive.google.com/file/d/${m[1]}/preview" style="width:100%; height:300px; border:none; border-radius:8px; margin-top:10px; background:#f0f0f0;"></iframe>` : null;
     }
 
     function openPreviewModal(jobId) {
         const job = marketingData.find(j => j.id === jobId);
         if (!job) return;
-        
         document.getElementById('previewTitle').innerText = job.title;
         const cont = document.getElementById('previewContentContainer');
         cont.innerHTML = '<div style="text-align:center;"><span class="spinner" style="border-top-color:var(--primary)"></span> กำลังดึงภาพตัวอย่าง...</div>';
-        
         document.getElementById('previewModal').style.display = 'flex';
         
         Promise.all(job.platforms.filter(p => p.link).map(p => {
-            if (p.link.includes('drive.google.com')) {
-                return Promise.resolve({ name: p.name, link: p.link, iframeHtml: getGDriveEmbedHtml(p.link) });
-            }
-            
+            if (p.link.includes('drive.google.com')) return Promise.resolve({ name: p.name, link: p.link, iframeHtml: getGDriveEmbedHtml(p.link) });
             if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-                return fetch(GOOGLE_SHEET_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'fetchImage', url: p.link })
-                })
-                .then(r => r.json())
-                .then(d => {
-                    return { name: p.name, link: p.link, img: d.imageUrl || '' };
-                })
-                .catch(() => {
-                    return fetch(`https://api.microlink.io/?url=${encodeURIComponent(p.link)}`)
-                        .then(r => r.json())
-                        .then(d => ({ name: p.name, link: p.link, img: d.data?.image?.url || d.data?.logo?.url }))
-                        .catch(() => ({ name: p.name, link: p.link, img: '' }));
-                });
+                return fetch(GOOGLE_SHEET_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'fetchImage', url: p.link }) })
+                .then(r => r.json()).then(d => { return { name: p.name, link: p.link, img: d.imageUrl || '' }; })
+                .catch(() => { return fetch(`https://api.microlink.io/?url=${encodeURIComponent(p.link)}`).then(r => r.json()).then(d => ({ name: p.name, link: p.link, img: d.data?.image?.url || d.data?.logo?.url })).catch(() => ({ name: p.name, link: p.link, img: '' })); });
             } else {
-                return fetch(`https://api.microlink.io/?url=${encodeURIComponent(p.link)}`)
-                    .then(r => r.json())
-                    .then(d => ({ name: p.name, link: p.link, img: d.data?.image?.url || d.data?.logo?.url }))
-                    .catch(() => ({ name: p.name, link: p.link, img: '' }));
+                return fetch(`https://api.microlink.io/?url=${encodeURIComponent(p.link)}`).then(r => r.json()).then(d => ({ name: p.name, link: p.link, img: d.data?.image?.url || d.data?.logo?.url })).catch(() => ({ name: p.name, link: p.link, img: '' }));
             }
         })).then(results => {
             cont.innerHTML = results.map(r => {
                 let contentHtml = '';
-                if (r.iframeHtml) { 
-                    contentHtml = r.iframeHtml; 
-                } else if (r.img) { 
-                    contentHtml = `<img src="${r.img}" class="preview-img">`; 
-                } else { 
-                    contentHtml = '<div style="background:#eee; padding:15px; text-align:center; color:#999; border-radius:6px; margin-top:10px;">ระบบแพลตฟอร์มป้องกันไม่ให้ดึงภาพ 🚫<br><span style="font-size:0.8em">กรุณากดปุ่มลิงก์ด้านล่างเพื่อเปิดดูในหน้าต่างใหม่</span></div>'; 
-                }
-                return `
-                    <div class="preview-box">
-                        <b>${r.name}</b><br>
-                        <small><a href="${r.link}" target="_blank" style="color:var(--primary);">${r.link}</a></small>
-                        ${contentHtml}
-                    </div>
-                `;
+                if (r.iframeHtml) contentHtml = r.iframeHtml; 
+                else if (r.img) contentHtml = `<img src="${r.img}" class="preview-img">`; 
+                else contentHtml = '<div style="background:#eee; padding:15px; text-align:center; color:#999; border-radius:6px; margin-top:10px;">ระบบแพลตฟอร์มป้องกันไม่ให้ดึงภาพ 🚫</div>'; 
+                return `<div class="preview-box"><b>${r.name}</b><br><small><a href="${r.link}" target="_blank" style="color:var(--primary);">${r.link}</a></small>${contentHtml}</div>`;
             }).join('');
         });
     }
 
-    function closePreviewModal() { 
-        document.getElementById('previewModal').style.display = 'none'; 
-    }
+    function closePreviewModal() { document.getElementById('previewModal').style.display = 'none'; }
 
-    // --- 🌟 วาดตาราง 🌟 ---
     function generateTableRows(data) {
-        if (data.length === 0) {
-            return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
-        }
-        
+        if (data.length === 0) return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
         return data.map(j => {
             let actualTotalViews = j.platforms.reduce((sum, p) => sum + (p.views || 0), 0);
-            if (actualTotalViews === 0 && j.totalViews > 0) {
-                actualTotalViews = j.totalViews; 
-            }
-
-            const dateStr = new Date(j.date).toLocaleDateString('en-GB', { 
-                day: 'numeric', 
-                month: 'short', 
-                year: 'numeric' 
-            });
-            
+            if (actualTotalViews === 0 && j.totalViews > 0) actualTotalViews = j.totalViews; 
+            const dateStr = new Date(j.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
             const formatColor = j.format === 'Videos' ? '#10b981' : '#f59e0b';
             const formatEmoji = j.format === 'Videos' ? '🎬 Videos' : '🖼️ Pictures';
             const tColor = typeColors[j.type] || '#6b7280'; 
-            
             let platformBadges = j.platforms.map(p => `<span class="badge" style="background:${platformColors[p.name]}">${p.name}</span>`).join(' ');
-            
             let previewActionHtml = j.platforms.some(p => p.link && p.link !== "") ? `<button class="btn-action btn-primary" style="margin-bottom:6px;" onclick="openPreviewModal(${j.id})">👁️ พรีวิว</button><br>` : '<span style="color:#aaa; font-size:0.85em;">(ไม่มีลิงก์)</span>';
-            
             let linkButtonsHtml = j.platforms.filter(p => p.link && p.link !== "").map(p => `<a href="${p.link}" target="_blank" class="btn-action" style="margin-bottom:4px; display:inline-block; text-decoration:none;">🔗 ${p.name}</a>`).join(' ');
-
-            return `
-            <tr>
-                <td style="white-space: nowrap;">${dateStr}</td>
-                <td style="min-width: 150px;">
-                    <b>${j.title}</b><br>
-                    <span class="badge" style="background: ${tColor}; opacity: 0.9; margin-top: 4px;">${j.type}</span>
-                </td>
-                <td><span class="badge" style="background:${formatColor}">${formatEmoji}</span></td>
-                <td>${platformBadges}</td>
-                <td>${previewActionHtml}${linkButtonsHtml}</td>
-                <td>
-                    <b style="color:var(--primary); font-size:1.2em;">${actualTotalViews.toLocaleString()}</b><br>
-                    <button class="btn-action" style="margin-top: 5px;" onclick="openViewsModal(${j.id})">📊 แยกช่องทาง</button>
-                </td>
-                <td>
-                    <button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;">✏️ แก้ไข</button><br>
-                    <button class="btn-action btn-danger" onclick="deleteJob(${j.id})">🗑️ ลบ</button>
-                </td>
-            </tr>`;
+            return `<tr><td style="white-space: nowrap;">${dateStr}</td><td style="min-width: 150px;"><b>${j.title}</b><br><span class="badge" style="background: ${tColor}; opacity: 0.9; margin-top: 4px;">${j.type}</span></td><td><span class="badge" style="background:${formatColor}">${formatEmoji}</span></td><td>${platformBadges}</td><td>${previewActionHtml}${linkButtonsHtml}</td><td><b style="color:var(--primary); font-size:1.2em;">${actualTotalViews.toLocaleString()}</b><br><button class="btn-action" style="margin-top: 5px;" onclick="openViewsModal(${j.id})">📊 แยกช่องทาง</button></td><td><button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;">✏️ แก้ไข</button><br><button class="btn-action btn-danger" onclick="deleteJob(${j.id})">🗑️ ลบ</button></td></tr>`;
         }).join('');
     }
 
-    // --- 🌟 ระบบตัวกรอง 🌟 ---
     function applyFilters() {
         const monthFilter = document.getElementById('monthFilter').value;
-        
         const formatChecked = Array.from(document.querySelectorAll('.filter-format:checked')).map(el => el.value);
         const platformChecked = Array.from(document.querySelectorAll('.filter-platform:checked')).map(el => el.value);
         const typeChecked = Array.from(document.querySelectorAll('.filter-type:checked')).map(el => el.value);
-
         const tagArea = document.getElementById('activeFiltersArea');
         let tagsHtml = '';
-        
-        if (formatChecked.length > 0) {
-            tagsHtml += formatChecked.map(f => `<span class="filter-tag">📐 ${f}</span>`).join('');
-        }
-        if (platformChecked.length > 0) {
-            tagsHtml += platformChecked.map(p => `<span class="filter-tag">🌐 ${p}</span>`).join('');
-        }
-        if (typeChecked.length > 0) {
-            tagsHtml += typeChecked.map(t => `<span class="filter-tag">🏷️ ${t}</span>`).join('');
-        }
-        
+        if (formatChecked.length > 0) tagsHtml += formatChecked.map(f => `<span class="filter-tag">📐 ${f}</span>`).join('');
+        if (platformChecked.length > 0) tagsHtml += platformChecked.map(p => `<span class="filter-tag">🌐 ${p}</span>`).join('');
+        if (typeChecked.length > 0) tagsHtml += typeChecked.map(t => `<span class="filter-tag">🏷️ ${t}</span>`).join('');
         tagArea.innerHTML = tagsHtml;
 
         filteredAllData = marketingData.filter(j => {
-            if (monthFilter !== 'all') {
-                if (new Date(j.date).getMonth() !== parseInt(monthFilter)) {
-                    return false;
-                }
-            }
-            if (formatChecked.length > 0) {
-                if (!formatChecked.includes(j.format)) {
-                    return false;
-                }
-            }
-            if (typeChecked.length > 0) {
-                if (!typeChecked.includes(j.type)) {
-                    return false;
-                }
-            }
+            if (monthFilter !== 'all') { if (new Date(j.date).getMonth() !== parseInt(monthFilter)) return false; }
+            if (formatChecked.length > 0) { if (!formatChecked.includes(j.format)) return false; }
+            if (typeChecked.length > 0) { if (!typeChecked.includes(j.type)) return false; }
             if (platformChecked.length > 0) {
                 const jobPlatforms = j.platforms.map(p => p.name);
-                const hasPlatform = platformChecked.some(p => jobPlatforms.includes(p));
-                if (!hasPlatform) {
-                    return false;
-                }
+                if (!platformChecked.some(p => jobPlatforms.includes(p))) return false;
             }
             return true;
         });
-
         filteredAllData.sort((a,b) => new Date(b.date) - new Date(a.date));
-
         document.getElementById('mainTableBody').innerHTML = generateTableRows(filteredAllData.slice(0, 10));
-        
-        if (document.getElementById('allContentModal').style.display === 'flex') {
-            currentPage = 1; 
-            updateAllContentTable(true); 
-        }
+        if (document.getElementById('allContentModal').style.display === 'flex') { currentPage = 1; updateAllContentTable(true); }
     }
 
-    // --- 🌟 ระบบล้างตัวกรอง 🌟 ---
     function resetFilters() {
         document.getElementById('monthFilter').value = 'all';
-        document.querySelectorAll('.filter-chk-label input').forEach(el => {
-            el.checked = false;
-        });
-        
-        applyFilters();
-        updateMonthlyStatus();
-        setRandomMascots();
+        document.querySelectorAll('.filter-chk-label input').forEach(el => { el.checked = false; });
+        applyFilters(); updateMonthlyStatus(); setRandomMascots();
     }
 
-    // --- 🌟 ระบบแบ่งหน้า Pagination 🌟 ---
     function updateAllContentTable(isPreFiltered = false) {
         if (!isPreFiltered) {
             filteredAllData = [...marketingData].sort((a,b) => new Date(b.date) - new Date(a.date));
             document.getElementById('monthFilter').value = 'all';
-            document.querySelectorAll('.filter-chk-label input').forEach(el => {
-                el.checked = false;
-            });
+            document.querySelectorAll('.filter-chk-label input').forEach(el => { el.checked = false; });
             document.getElementById('activeFiltersArea').innerHTML = '';
         }
-
         const totalItems = filteredAllData.length;
         document.getElementById('allContentCount').innerText = `พบ ${totalItems} รายการ`;
-
         const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const pageData = filteredAllData.slice(startIndex, endIndex);
-
-        document.getElementById('allTableBody').innerHTML = generateTableRows(pageData);
-
+        document.getElementById('allTableBody').innerHTML = generateTableRows(filteredAllData.slice(startIndex, startIndex + itemsPerPage));
         const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
         document.getElementById('pageIndicator').innerText = `หน้า ${currentPage} จาก ${totalPages}`;
-        
         document.getElementById('btnPrevPage').disabled = currentPage === 1;
         document.getElementById('btnNextPage').disabled = currentPage === totalPages || totalPages === 0;
     }
 
-    function changePage(direction) {
-        currentPage += direction;
-        updateAllContentTable(true); 
-        document.querySelector('#allContentModal .modal-content').scrollTop = 0;
-    }
+    function changePage(direction) { currentPage += direction; updateAllContentTable(true); document.querySelector('#allContentModal .modal-content').scrollTop = 0; }
+    function openAllContentModal() { currentPage = 1; applyFilters(); document.getElementById('allContentModal').style.display = 'flex'; }
+    function closeAllContentModal() { document.getElementById('allContentModal').style.display = 'none'; }
 
-    function openAllContentModal() {
-        currentPage = 1;
-        applyFilters(); 
-        document.getElementById('allContentModal').style.display = 'flex';
-    }
-    
-    function closeAllContentModal() { 
-        document.getElementById('allContentModal').style.display = 'none'; 
-    }
-
-    // --- 🌟 ระบบโหลดข้อมูลจาก Google Sheet (Cloud-First) 🌟 ---
+    // 🌟 พระเอกของงาน: ฟังก์ชันโหลดข้อมูลจาก Sheet (Cloud-First) 🌟
     function loadDataFromGoogleSheet() {
+        // ถ้าเป็นแบบ no-cors มันจะดึงข้อมูลกลับมาไม่ได้ เลยต้องใช้การดึงแบบปกติ 
+        // *ถ้าไม่ขึ้นข้อมูลแสดงว่าสิทธิ์ของ Sheet โดนบล็อก แนะนำให้เปลี่ยนไปใช้ Script จากอีเมลส่วนตัวครับ*
         fetch(GOOGLE_SHEET_URL)
             .then(response => response.json())
             .then(data => {
                 if (data && data.result === "success" && data.data) {
-                    marketingData = data.data; 
-                    localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
+                    marketingData = data.data; // ทับข้อมูลในเครื่องด้วยข้อมูลจาก Sheet เลย!
+                    localStorage.setItem('marketingData', JSON.stringify(marketingData)); // สำรองไว้
                     
+                    // สั่งวาดทุกอย่างใหม่
                     applyFilters(); 
                     updateChart();
                     setRandomMascots();
                 }
-                document.getElementById('loadingOverlay').style.display = 'none'; 
+                document.getElementById('loadingOverlay').style.display = 'none'; // ปิดหน้าจอโหลด
             })
             .catch(error => {
                 console.error("Fetch Error:", error);
-                
+                // ถ้าดึงไม่ได้ ให้ใช้ข้อมูลจาก Local Storage แทน (Fallback)
                 marketingData = JSON.parse(localStorage.getItem('marketingData')) || [];
-                applyFilters(); 
-                updateChart(); 
-                setRandomMascots();
+                applyFilters(); updateChart(); setRandomMascots();
                 document.getElementById('loadingOverlay').style.display = 'none';
             });
     }
 
     window.onload = () => {
         document.getElementById('jobDate').value = new Date().toISOString().split('T')[0];
-        
         const lastUpdated = localStorage.getItem('targetLastUpdated');
-        if (lastUpdated) {
-            document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${lastUpdated}`;
-        }
-
-        renderTargets(); 
-        toggleLinkInputs(); 
+        if (lastUpdated) document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${lastUpdated}`;
         
-        // เริ่มโหลดข้อมูลจาก Google Sheet ทันทีที่เปิดหน้าเว็บ
+        renderTargets(); toggleLinkInputs();
+        
+        // 🌟 เรียกฟังก์ชันโหลดข้อมูลจาก Sheet ตอนเปิดเว็บ 🌟
         loadDataFromGoogleSheet();
     };
     
-    window.onclick = (e) => {
-        if (e.target.className === 'modal') {
-            document.querySelectorAll('.modal').forEach(m => {
-                m.style.display = 'none';
-            });
+    window.onclick = (e) => { if (e.target.className === 'modal') document.querySelectorAll('.modal').forEach(m => { m.style.display = 'none'; }); };
+
+    // 🌟 ระบบซิงค์ข้อมูลฉุกเฉิน (ดันของในเครื่องขึ้น Sheet) 🌟
+    async function syncLocalToCloud() {
+        const localData = JSON.parse(localStorage.getItem('marketingData')) || [];
+        if(localData.length === 0) {
+            alert('ไม่มีข้อมูลในเครื่องให้ซิงค์ครับ');
+            return;
         }
-    };
+
+        if(!confirm(`คุณกำลังจะอัปโหลดข้อมูลเก่าจำนวน ${localData.length} รายการ ขึ้นไปยัง Google Sheet รูปแบบใหม่\n\nยืนยันหรือไม่?`)) return;
+
+        document.getElementById('loadingOverlay').innerHTML = `<div class="big-spinner"></div><h2 style="color: var(--primary);">กำลังซิงค์ข้อมูลขึ้น Cloud...</h2><p style="color: var(--text-muted);">กรุณาอย่าปิดหน้าต่างนี้ (กำลังอัปโหลด ${localData.length} รายการ)</p>`;
+        document.getElementById('loadingOverlay').style.display = 'flex';
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for(const job of localData) {
+            try {
+                // ส่งทีละแถวให้ชัวร์
+                await fetch(GOOGLE_SHEET_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                    body: JSON.stringify({...job, action: 'add'}) 
+                });
+                successCount++;
+            } catch (error) {
+                failCount++;
+                console.error("Sync Error on ID:", job.id, error);
+            }
+        }
+
+        document.getElementById('loadingOverlay').style.display = 'none';
+        
+        if (failCount === 0) {
+            alert(`✅ ซิงค์สำเร็จทั้งหมด ${successCount} รายการ!\n\nกรุณากด F5 หรือ รีเฟรชหน้าเว็บ 1 ครั้งเพื่อให้ระบบดึงข้อมูลจาก Cloud ลงมาโชว์ครับ`);
+        } else {
+            alert(`⚠️ ซิงค์สำเร็จ ${successCount} รายการ, ล้มเหลว ${failCount} รายการ\nลองรีเฟรชหน้าเว็บดูว่าข้อมูลมาครบไหมครับ`);
+        }
+    }
 </script>
 </body>
 </html>
