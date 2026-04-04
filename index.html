@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketing Dashboard Center - Isuzu SP</title>
+    <title>Marketing Command Center - Isuzu SP</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <style>
@@ -38,7 +38,6 @@
         .progress-bar { height: 100%; border-radius: 4px; transition: width 0.5s; }
         .target-stats { display: flex; justify-content: space-between; font-size: 0.85em; color: var(--text-muted); }
         
-        /* สไตล์สลับโหมด */
         .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px; transition: 0.3s ease; }
         .main-grid.executive-mode { grid-template-columns: 1fr; }
         .main-grid.executive-mode #formCard { display: none; }
@@ -73,13 +72,11 @@
 
         .target-setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
         
-        /* 🌟 สไตล์ปุ่มเปลี่ยนหน้า (Pagination) 🌟 */
         .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); }
         .pagination button { padding: 6px 12px; border: 1px solid var(--border); background: white; border-radius: 4px; cursor: pointer; }
         .pagination button:hover:not(:disabled) { background: #f3f4f6; }
         .pagination button:disabled { color: #ccc; cursor: not-allowed; }
 
-        /* 🌟 สไตล์ระบบ Filter แบบ Custom Dropdown 🌟 */
         .filter-container { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; align-items: center; }
         .custom-select-wrapper { position: relative; display: inline-block; }
         .custom-select-btn { background: #ffffff; border: 1px solid #d1d5db; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; font-weight: 600; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; min-width: 140px; }
@@ -113,7 +110,7 @@
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
         <div>
-            <h1 style="color: var(--isuzu-red); margin-bottom: 5px; font-size: 1.8em;">Marketing Dashboard Center</h1>
+            <h1 style="color: var(--isuzu-red); margin-bottom: 5px; font-size: 1.8em;">Marketing Command Center</h1>
             <p style="color: var(--text-muted); margin: 0; font-size: 0.9em;">แดชบอร์ดติดตามผลงานและเป้าหมายการตลาด อีซูซุสหะภัณฑ์ ประจำปี 2026</p>
         </div>
         
@@ -152,6 +149,11 @@
 
     <div id="mainContentGrid" class="main-grid executive-mode">
         <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            
+            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 30px;">
+                <img src="logo-sp.png" alt="Isuzu SP Logo" style="width: 80%; max-width: 400px; object-fit: contain;">
+            </div>
+
             <div>
                 <div class="card-title" style="margin-bottom: 15px;">จำนวนชิ้นงานแต่ละเดือน (ปี 2026)</div>
                 
@@ -168,9 +170,6 @@
                 <div style="position: relative; height: 230px; width: 100%;">
                     <canvas id="monthlyChart"></canvas>
                 </div>
-            </div>
-            <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-                <img src="logo-sp.png" alt="Isuzu SP Logo" style="width: 80%; max-width: 400px; object-fit: contain;">
             </div>
         </div>
 
@@ -412,7 +411,6 @@
 </div>
 
 <script>
-    // 📍 URL ของ Google Apps Script 📍
     const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwjq5hbL18QORPz-WGjvTd-nac4bn1mrpmqYnAsdyLvaCgt084H22kCYLajBxYNQRJs1w/exec';
 
     Chart.register(ChartDataLabels);
@@ -902,7 +900,6 @@
         }).join('');
     }
 
-    // 🌟 ระบบจัดการฟิลเตอร์ (เชื่อมหน้าแรกและหน้าดูทั้งหมด) 🌟
     function applyFilters() {
         const monthFilter = document.getElementById('monthFilter').value;
         
@@ -939,14 +936,12 @@
 
         document.getElementById('mainTableBody').innerHTML = generateTableRows(filteredAllData.slice(0, 10));
         
-        // ถ้า Modal "ดูทั้งหมด" เปิดอยู่ ให้อัปเดตข้อมูลด้วยเลย
         if(document.getElementById('allContentModal').style.display === 'flex') {
-            currentPage = 1;
-            updateAllContentTable(true);
+            currentPage = 1; 
+            updateAllContentTable(true); 
         }
     }
 
-    // 🌟 ระบบแบ่งหน้า (Pagination) 🌟
     function updateAllContentTable(isPreFiltered = false) {
         if (!isPreFiltered) {
             filteredAllData = [...marketingData].sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -972,7 +967,7 @@
 
     function changePage(direction) {
         currentPage += direction;
-        updateAllContentTable(true); // บอกว่าใช้ข้อมูลที่ฟิลเตอร์แล้ว
+        updateAllContentTable(true); 
         document.querySelector('#allContentModal .modal-content').scrollTop = 0;
     }
 
