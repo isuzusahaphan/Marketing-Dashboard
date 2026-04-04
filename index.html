@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketing Dashboard Center - Isuzu SP</title>
+    <title>Marketing Command Center - Isuzu SP</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -345,7 +345,7 @@
 </div>
 
 <script>
-    // 📍 URL ของ Google Apps Script 📍
+    // 📍 URL ของ Google Apps Script (เวอร์ชันอัปเดตใหม่) 📍
     const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbw3eX38G2loEdtpaIQsJACGJbMvDlNuzB4ANwGA_Eqr6D1LAzNSS2vxQ6hlTJLsX8701w/exec';
 
     let monthlyChartInstance = null;
@@ -533,7 +533,8 @@
         try {
             const updatedJob = { ...job, action: 'edit' }; 
             if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-                await fetch(GOOGLE_SHEET_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(updatedJob) });
+                // 🌟 ทะลวงเกราะ CORS (no-cors) 🌟
+                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(updatedJob) });
             }
             localStorage.setItem('marketingData', JSON.stringify(marketingData));
             renderMainTable(); if(document.getElementById('allContentModal').style.display === 'flex') renderAllContentTable();
@@ -602,7 +603,8 @@
 
         try {
             if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-                await fetch(GOOGLE_SHEET_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(updatedJob) });
+                // 🌟 ทะลวงเกราะ CORS (no-cors) 🌟
+                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(updatedJob) });
             }
             marketingData[jobIndex] = updatedJob;
             localStorage.setItem('marketingData', JSON.stringify(marketingData));
@@ -649,7 +651,8 @@
 
         try {
             if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-                await fetch(GOOGLE_SHEET_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(newJob) });
+                // 🌟 ทะลวงเกราะ CORS (no-cors) 🌟
+                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(newJob) });
             }
             marketingData.push(newJob);
             localStorage.setItem('marketingData', JSON.stringify(marketingData));
@@ -668,7 +671,8 @@
         if(confirm('ต้องการลบชิ้นงานนี้อย่างถาวรใช่หรือไม่? (ระบบจะลบออกจาก Google Sheet ด้วย)')) {
             try {
                 if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-                    await fetch(GOOGLE_SHEET_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'delete', id: id }) });
+                    // 🌟 ทะลวงเกราะ CORS (no-cors) 🌟
+                    await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'delete', id: id }) });
                 }
                 marketingData = marketingData.filter(j => j.id !== id); 
                 localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
@@ -716,6 +720,7 @@
             if(p.link.includes('drive.google.com')) return Promise.resolve({ name: p.name, link: p.link, iframeHtml: getGDriveEmbedHtml(p.link) });
             
             if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
+                // ตรงนี้ไม่ต้องใส่ no-cors นะครับ เพราะเราต้องการอ่านคำตอบกลับมาเป็นภาพ
                 return fetch(GOOGLE_SHEET_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -790,7 +795,6 @@
     window.onload = () => {
         document.getElementById('jobDate').value = new Date().toISOString().split('T')[0];
         
-        // ดึงวันที่อัปเดตล่าสุดมาโชว์
         const lastUpdated = localStorage.getItem('targetLastUpdated');
         if(lastUpdated) document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${lastUpdated}`;
 
