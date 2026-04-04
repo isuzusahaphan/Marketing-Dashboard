@@ -141,8 +141,8 @@
             border-radius: 6px; 
             height: 12px; 
             margin-bottom: 15px; 
-            margin-top: 25px; /* เว้นที่ให้มาสคอต */
-            overflow: visible; /* ให้มาสคอตลอยได้ */
+            margin-top: 25px; 
+            overflow: visible; 
             position: relative;
         }
 
@@ -169,17 +169,13 @@
             z-index: 10;
         }
 
-        /* Main Grid & Cards */
+        /* 🌟 Main Grid & Cards (อัปเดตเป็นแนวตั้ง) 🌟 */
         .main-grid { 
             display: grid; 
-            grid-template-columns: 2fr 1fr; 
+            grid-template-columns: 1fr; /* ใช้ 1 คอลัมน์เต็มพื้นที่ */
             gap: 20px; 
             margin-bottom: 25px; 
             transition: 0.3s ease; 
-        }
-
-        .main-grid.executive-mode { 
-            grid-template-columns: 1fr; 
         }
 
         .main-grid.executive-mode #formCard { 
@@ -203,9 +199,16 @@
             padding-bottom: 10px; 
         }
 
-        /* Form Controls */
+        /* 🌟 Form Grid Layout (ฟอร์มแนวนอน) 🌟 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
         .form-group { 
-            margin-bottom: 15px; 
+            margin-bottom: 0; /* เอา margin เดิมออก เพื่อให้ Grid จัดการแทน */
         }
 
         .form-group label { 
@@ -252,9 +255,9 @@
 
         .link-inputs-container { 
             margin-top: 15px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 15px; 
         }
 
         /* Buttons */
@@ -540,9 +543,6 @@
             body { 
                 padding: 10px; 
             }
-            .main-grid { 
-                grid-template-columns: 1fr; 
-            } 
             .target-setup-grid { 
                 grid-template-columns: 1fr; 
                 gap: 10px; 
@@ -569,7 +569,7 @@
 
 <div id="loadingOverlay">
     <div class="big-spinner"></div>
-    <h2 style="color: var(--primary);">กำลังซิงค์ข้อมูลจาก Google Sheet...</h2>
+    <h2 style="color: var(--primary);">กำลังซิงค์ข้อมูลจากก้อนเมฆ...</h2>
 </div>
 
 <div class="container">
@@ -668,7 +668,7 @@
                 </div>
             </div>
 
-            <div style="position: relative; height: 230px; width: 100%;">
+            <div style="position: relative; height: 250px; width: 100%;">
                 <canvas id="monthlyChart"></canvas>
             </div>
         </div>
@@ -676,42 +676,44 @@
         <div id="formCard" class="card">
             <div class="card-title">บันทึกงานใหม่</div>
             
-            <div class="form-group">
-                <label>วันที่โพสต์</label>
-                <input type="date" id="jobDate" class="form-control">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>วันที่โพสต์</label>
+                    <input type="date" id="jobDate" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label>ชื่อชิ้นงาน / หัวข้อ</label>
+                    <input type="text" id="jobTitle" class="form-control" placeholder="เช่น ส่งมอบรถใหม่ คุณ A...">
+                </div>
+                
+                <div class="form-group">
+                    <label>ประเภทงาน</label>
+                    <select id="jobType" class="form-control">
+                        <option value="ส่งมอบรถใหม่">ส่งมอบรถใหม่</option>
+                        <option value="คู่บื้อ">คู่บื้อ</option>
+                        <option value="ไปกับสหะภัณฑ์">ไปกับสหะภัณฑ์</option>
+                        <option value="โหนกระบะ">โหนกระบะ</option>
+                        <option value="บรรทุกมุก">บรรทุกมุก</option>
+                        <option value="EVENT / เทศกาล">EVENT / เทศกาล</option>
+                        <option value="วันหยุด">วันหยุด</option>
+                        <option value="ตรีเพชร">ตรีเพชร</option>
+                        <option value="โปรศูนย์บริการ">โปรศูนย์บริการ</option>
+                        <option value="โปรฝ่ายขาย">โปรฝ่ายขาย</option>
+                        <option value="แต่ละวันสหะภัณฑ์">แต่ละวันสหะภัณฑ์</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>รูปแบบ</label>
+                    <select id="jobFormat" class="form-control">
+                        <option value="Videos">🎬 Videos</option>
+                        <option value="Pictures">🖼️ Pictures</option>
+                    </select>
+                </div>
             </div>
             
-            <div class="form-group">
-                <label>ชื่อชิ้นงาน / หัวข้อ</label>
-                <input type="text" id="jobTitle" class="form-control" placeholder="เช่น ส่งมอบรถใหม่ คุณ A...">
-            </div>
-            
-            <div class="form-group">
-                <label>ประเภทงาน</label>
-                <select id="jobType" class="form-control">
-                    <option value="ส่งมอบรถใหม่">ส่งมอบรถใหม่</option>
-                    <option value="คู่บื้อ">คู่บื้อ</option>
-                    <option value="ไปกับสหะภัณฑ์">ไปกับสหะภัณฑ์</option>
-                    <option value="โหนกระบะ">โหนกระบะ</option>
-                    <option value="บรรทุกมุก">บรรทุกมุก</option>
-                    <option value="EVENT / เทศกาล">EVENT / เทศกาล</option>
-                    <option value="วันหยุด">วันหยุด</option>
-                    <option value="ตรีเพชร">ตรีเพชร</option>
-                    <option value="โปรศูนย์บริการ">โปรศูนย์บริการ</option>
-                    <option value="โปรฝ่ายขาย">โปรฝ่ายขาย</option>
-                    <option value="แต่ละวันสหะภัณฑ์">แต่ละวันสหะภัณฑ์</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>รูปแบบ</label>
-                <select id="jobFormat" class="form-control">
-                    <option value="Videos">🎬 Videos</option>
-                    <option value="Pictures">🖼️ Pictures</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
+            <div class="form-group" style="margin-bottom: 10px; margin-top: 15px;">
                 <label>ช่องทางที่โพสต์</label>
                 <div class="checkbox-group">
                     <label class="checkbox-label"><input type="checkbox" id="chk-fb" value="Facebook" onchange="toggleLinkInputs()" checked> Facebook</label>
@@ -723,7 +725,7 @@
             
             <div id="linkInputsContainer" class="link-inputs-container"></div>
             
-            <button id="btnSaveMain" class="btn-submit" onclick="saveJob()">บันทึกข้อมูล</button>
+            <button id="btnSaveMain" class="btn-submit" style="margin-top: 20px;" onclick="saveJob()">บันทึกข้อมูล</button>
         </div>
     </div>
 
@@ -1048,7 +1050,6 @@
 
     function closeTargetModal() { document.getElementById('targetModal').style.display = 'none'; }
     
-    // 🌟 อัปเกรดระบบซิงค์เป้าหมายขึ้น Cloud 🌟
     async function saveTargets() {
         const btn = document.getElementById('btnSaveTargets');
         const originalText = btn.innerHTML;
