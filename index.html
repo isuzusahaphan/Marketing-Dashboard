@@ -304,8 +304,15 @@
             white-space: nowrap; 
         }
 
-        .btn-action:hover { 
+        .btn-action:hover:not(:disabled) { 
             background: #f3f4f6; 
+        }
+
+        /* 🌟 เพิ่ม CSS จัดการปุ่มตอนที่ถูกปิดการใช้งาน (Disabled) 🌟 */
+        .btn-action:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(100%);
         }
 
         .btn-primary { 
@@ -314,7 +321,7 @@
             border: none; 
         }
 
-        .btn-primary:hover { 
+        .btn-primary:hover:not(:disabled) { 
             background: #4338ca; 
         }
 
@@ -324,7 +331,7 @@
             border: 1px solid #fca5a5; 
         }
 
-        .btn-danger:hover { 
+        .btn-danger:hover:not(:disabled) { 
             background: #fecaca; 
         }
 
@@ -606,7 +613,7 @@
             <div class="header-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                 <div style="font-size: 0.85em; color: var(--text-muted); font-weight: bold; background: var(--border); padding: 5px 10px; border-radius: 4px;">อีซูซุสหะภัณฑ์</div>
                 <button id="modeToggleBtn" class="btn-action" style="background: #10b981; color: white; border: none;" onclick="toggleMode()">👨‍💼 โหมดผู้บริหาร</button>
-                <button class="btn-action btn-primary" onclick="openTargetModal()">🎯 ตั้งค่าเป้าหมาย</button>
+                <button id="btnSetTarget" class="btn-action btn-primary" onclick="openTargetModal()" disabled>🎯 ตั้งค่าเป้าหมาย</button>
             </div>
             <div id="lastUpdateText" class="black-badge">อัปเดตผู้ติดตามล่าสุด: ยังไม่มีข้อมูล</div>
         </div>
@@ -991,19 +998,33 @@
     });
 
     let isExecutiveMode = true; 
+    
+    // 🌟 ระบบสลับโหมด และล็อกปุ่มตั้งค่าเป้าหมาย 🌟
     function toggleMode() {
         isExecutiveMode = !isExecutiveMode;
         const grid = document.getElementById('mainContentGrid');
         const btn = document.getElementById('modeToggleBtn');
+        const btnSetTarget = document.getElementById('btnSetTarget');
+
         if (isExecutiveMode) {
             grid.classList.add('executive-mode');
             btn.innerHTML = '👨‍💼 โหมดผู้บริหาร';
             btn.style.background = '#10b981'; 
+            
+            // ล็อกปุ่มเป้าหมาย
+            btnSetTarget.disabled = true;
         } else {
             grid.classList.remove('executive-mode');
             btn.innerHTML = '📝 โหมดบันทึกงาน';
             btn.style.background = '#f59e0b'; 
+            
+            // ปลดล็อกปุ่มเป้าหมาย
+            btnSetTarget.disabled = false;
         }
+        
+        // 🌟 สั่งรีเฟรชตาราง เพื่อให้ปุ่มแก้ไข/ลบ เปลี่ยนสถานะล็อกตามโหมด 🌟
+        applyFilters();
+
         setTimeout(() => { if (monthlyChartInstance) monthlyChartInstance.resize(); }, 350);
     }
 
@@ -1416,6 +1437,10 @@
 
     function generateTableRows(data) {
         if (data.length === 0) return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
+        
+        // 🌟 เพิ่มคำสั่งตรวจสอบโหมด เพื่อนำไปซ่อนปุ่ม 🌟
+        const disabledState = isExecutiveMode ? 'disabled' : '';
+
         return data.map(j => {
             let actualTotalViews = j.platforms.reduce((sum, p) => sum + (p.views || 0), 0);
             if (actualTotalViews === 0 && j.totalViews > 0) actualTotalViews = j.totalViews; 
@@ -1426,7 +1451,19 @@
             let platformBadges = j.platforms.map(p => `<span class="badge" style="background:${platformColors[p.name]}">${p.name}</span>`).join(' ');
             let previewActionHtml = j.platforms.some(p => p.link && p.link !== "") ? `<button class="btn-action btn-primary" style="margin-bottom:6px;" onclick="openPreviewModal(${j.id})">👁️ พรีวิว</button><br>` : '<span style="color:#aaa; font-size:0.85em;">(ไม่มีลิงก์)</span>';
             let linkButtonsHtml = j.platforms.filter(p => p.link && p.link !== "").map(p => `<a href="${p.link}" target="_blank" class="btn-action" style="margin-bottom:4px; display:inline-block; text-decoration:none;">🔗 ${p.name}</a>`).join(' ');
-            return `<tr><td style="white-space: nowrap;">${dateStr}</td><td style="min-width: 150px;"><b>${j.title}</b><br><span class="badge" style="background: ${tColor}; opacity: 0.9; margin-top: 4px;">${j.type}</span></td><td><span class="badge" style="background:${formatColor}">${formatEmoji}</span></td><td>${platformBadges}</td><td>${previewActionHtml}${linkButtonsHtml}</td><td><b style="color:var(--primary); font-size:1.2em;">${actualTotalViews.toLocaleString()}</b><br><button class="btn-action" style="margin-top: 5px;" onclick="openViewsModal(${j.id})">📊 แยกช่องทาง</button></td><td><button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;">✏️ แก้ไข</button><br><button class="btn-action btn-danger" onclick="deleteJob(${j.id})">🗑️ ลบ</button></td></tr>`;
+            
+            return `<tr>
+                        <td style="white-space: nowrap;">${dateStr}</td>
+                        <td style="min-width: 150px;"><b>${j.title}</b><br><span class="badge" style="background: ${tColor}; opacity: 0.9; margin-top: 4px;">${j.type}</span></td>
+                        <td><span class="badge" style="background:${formatColor}">${formatEmoji}</span></td>
+                        <td>${platformBadges}</td>
+                        <td>${previewActionHtml}${linkButtonsHtml}</td>
+                        <td><b style="color:var(--primary); font-size:1.2em;">${actualTotalViews.toLocaleString()}</b><br><button class="btn-action" style="margin-top: 5px;" onclick="openViewsModal(${j.id})">📊 แยกช่องทาง</button></td>
+                        <td>
+                            <button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;" ${disabledState}>✏️ แก้ไข</button><br>
+                            <button class="btn-action btn-danger" onclick="deleteJob(${j.id})" ${disabledState}>🗑️ ลบ</button>
+                        </td>
+                    </tr>`;
         }).join('');
     }
 
@@ -1549,6 +1586,9 @@
         if (lastUpdated) {
             document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${lastUpdated}`;
         }
+        
+        // 🌟 ตั้งค่าเริ่มต้นให้ปุ่มล็อกตรงกับโหมดแรกเริ่ม 🌟
+        document.getElementById('btnSetTarget').disabled = isExecutiveMode;
 
         renderTargets(); 
         toggleLinkInputs(); 
