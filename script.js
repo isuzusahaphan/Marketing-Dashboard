@@ -21,6 +21,10 @@ let currentPage = 1;
 const itemsPerPage = 10;
 let filteredAllData = [];
 
+// ตัวแปรกันพลุยิงซ้ำซาก
+let celebratedTargets = { 'Facebook': false, 'TikTok': false, 'YouTube': false, 'Line OA': false };
+let celebratedMonthly = false;
+
 const mascots = ['ISZ-Mascot-Master.png']; 
 for (let i = 1; i <= 8; i++) {
     let num = i.toString().padStart(2, '0');
@@ -32,6 +36,22 @@ function setRandomMascots() {
     if (mascotImgElement) {
         mascotImgElement.src = mascots[Math.floor(Math.random() * mascots.length)];
     }
+}
+
+// 🔥 ฟังก์ชันโชว์ Loading หรูๆ
+function showLoading(text) {
+    Swal.fire({
+        title: text, allowOutsideClick: false, showConfirmButton: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+}
+
+// 🔥 แจ้งเตือน Toast มุมจอขวาบน
+function showToast(icon, title) {
+    Swal.fire({
+        toast: true, position: 'top-end', icon: icon, title: title,
+        showConfirmButton: false, timer: 3000, timerProgressBar: true
+    });
 }
 
 function toggleDropdown(id) {
@@ -51,7 +71,6 @@ document.addEventListener('click', function(event) {
 
 let isExecutiveMode = true; 
 
-// 🌟 ระบบสลับโหมด และล็อกปุ่มตั้งค่าเป้าหมาย 🌟
 function toggleMode() {
     isExecutiveMode = !isExecutiveMode;
     const grid = document.getElementById('mainContentGrid');
@@ -62,21 +81,14 @@ function toggleMode() {
         grid.classList.add('executive-mode');
         btn.innerHTML = '👨‍💼 โหมดผู้บริหาร';
         btn.style.background = '#10b981'; 
-        
-        // ล็อกปุ่มเป้าหมาย
         btnSetTarget.disabled = true;
     } else {
         grid.classList.remove('executive-mode');
         btn.innerHTML = '📝 โหมดบันทึกงาน';
         btn.style.background = '#f59e0b'; 
-        
-        // ปลดล็อกปุ่มเป้าหมาย
         btnSetTarget.disabled = false;
     }
-    
-    // สั่งรีเฟรชตาราง เพื่อให้ปุ่มแก้ไข/ลบ เปลี่ยนสถานะล็อกตามโหมด
     applyFilters();
-
     setTimeout(() => { if (monthlyChartInstance) monthlyChartInstance.resize(); }, 350);
 }
 
@@ -103,15 +115,23 @@ function updateMonthlyStatus() {
     if (currentMonthCount < 25) {
         statusText = `วอร์มนิ้วอยู่ฮะ 🥶 (เป้าแรก 25)`;
         barBgGradient = "linear-gradient(90deg, #9ca3af, #d1d5db, #9ca3af)";
+        celebratedMonthly = false;
     } else if (currentMonthCount < 50) {
         statusText = `ทรงอย่างแบด มาตรฐานเป๊ะ 🤙 (เป้าต่อไป 50)`;
         barBgGradient = "linear-gradient(90deg, #3b82f6, #93c5fd, #3b82f6)";
+        celebratedMonthly = false;
     } else if (currentMonthCount < 80) {
-        statusText = `ปั่นยับๆ เอาเรื่องจัด 🔥 (เป้าสูงสุด 80)`;
+        statusText = `ปั่นยับๆ เอาเรื่องจัด 🔥 (เป้าหมายสูงสุด 80)`;
         barBgGradient = "linear-gradient(90deg, #f59e0b, #fcd34d, #f59e0b)";
+        celebratedMonthly = false;
     } else {
         statusText = `เดือดจัด ปลัดบอก! ทะลุหลอดไปเลย 🚀💯`;
         barBgGradient = "linear-gradient(90deg, #ef4444, #f43f5e, #ef4444)";
+        // 🔥 ยิงพลุเมื่อยอดรายเดือนทะลุเป้า 🔥
+        if (!celebratedMonthly) {
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 3000 });
+            celebratedMonthly = true;
+        }
     }
 
     let pct = (currentMonthCount / 80) * 100;
@@ -142,11 +162,20 @@ function openTargetModal() {
 
 function closeTargetModal() { document.getElementById('targetModal').style.display = 'none'; }
 
+// 🔥 สี Gradient ประจำแต่ละแพลตฟอร์ม
+function getPlatformGradient(platform) {
+    switch(platform) {
+        case 'Facebook': return 'linear-gradient(90deg, #60a5fa, #1d4ed8)';
+        case 'TikTok': return 'linear-gradient(90deg, #9ca3af, #000000)';
+        case 'YouTube': return 'linear-gradient(90deg, #fca5a5, #b91c1c)';
+        case 'Line OA': return 'linear-gradient(90deg, #86efac, #047857)';
+        default: return 'var(--primary)';
+    }
+}
+
 async function saveTargets() {
     const btn = document.getElementById('btnSaveTargets');
-    const originalText = btn.innerHTML;
     btn.disabled = true; 
-    btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
     
     Object.keys(platformTargets).forEach(p => {
         platformTargets[p].current = parseInt(document.getElementById(`cur-input-${p}`).value) || 0;
@@ -155,12 +184,12 @@ async function saveTargets() {
     
     const nowStr = new Date().toLocaleDateString('en-GB'); 
     
+    showLoading('กำลังบันทึกเป้าหมาย...');
+
     try {
         if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
             await fetch(GOOGLE_SHEET_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
                 body: JSON.stringify({ action: 'saveTargets', targets: platformTargets, lastUpdate: nowStr }) 
             });
         }
@@ -171,22 +200,36 @@ async function saveTargets() {
 
         renderTargets(); 
         closeTargetModal();
+        Swal.fire({ icon: 'success', title: 'อัปเดตเป้าหมายแล้ว!', showConfirmButton: false, timer: 1500 });
     } catch (error) {
         console.error('Error saving targets:', error);
-        alert('❌ บันทึกเป้าหมายลง Sheet ไม่สำเร็จ แต่บันทึกลงในเครื่องแล้วครับ');
+        Swal.fire({ icon: 'warning', title: 'บันทึกแค่ในเครื่อง', text: 'ไม่สามารถส่งข้อมูลไปที่ Sheet ได้ครับ' });
     } finally {
         btn.disabled = false;
-        btn.innerHTML = originalText;
     }
 }
 
 function renderTargets() {
     Object.keys(platformTargets).forEach(p => {
         const pct = Math.round((platformTargets[p].current / platformTargets[p].target) * 100);
+        
         document.getElementById(`pct-${p}`).innerText = `${pct}%`;
-        document.getElementById(`bar-${p}`).style.width = `${pct > 100 ? 100 : pct}%`;
+        
+        // 🔥 ใส่สี Gradient ให้หลอด Progress
+        const bar = document.getElementById(`bar-${p}`);
+        bar.style.width = `${pct > 100 ? 100 : pct}%`;
+        bar.style.background = getPlatformGradient(p);
+
         document.getElementById(`cur-${p}`).innerText = `ปัจจุบัน: ${platformTargets[p].current.toLocaleString()}`;
         document.getElementById(`tar-${p}`).innerText = `เป้าหมาย: ${platformTargets[p].target.toLocaleString()}`;
+
+        // 🔥 ยิงพลุเมื่อเป้าหมายแพลตฟอร์มถึง 100% 🔥
+        if (pct >= 100 && !celebratedTargets[p]) {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 }, zIndex: 3000 });
+            celebratedTargets[p] = true;
+        } else if (pct < 100) {
+            celebratedTargets[p] = false;
+        }
     });
 }
 
@@ -265,21 +308,23 @@ async function saveViews() {
     job.totalViews = total; 
 
     const btnSubmit = document.getElementById('btnSaveViews');
-    const originalText = btnSubmit.innerHTML;
-    btnSubmit.disabled = true; btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+    btnSubmit.disabled = true; 
 
     marketingData[jobIndex] = job;
     applyFilters(); closeViewsModal();
+
+    showLoading('กำลังบันทึกยอดวิว...');
 
     try {
         const updatedJob = { ...job, action: 'edit' }; 
         if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
             await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(updatedJob) });
         }
+        Swal.fire({ icon: 'success', title: 'อัปเดตยอดวิวเรียบร้อย', showConfirmButton: false, timer: 1500 });
     } catch (error) {
-        console.error(error); alert('❌ ขัดข้อง');
+        console.error(error); Swal.fire({ icon: 'error', title: 'ขัดข้อง', text: 'บันทึกลง Sheet ไม่สำเร็จ' });
     } finally {
-        btnSubmit.disabled = false; btnSubmit.innerHTML = originalText;
+        btnSubmit.disabled = false;
     }
 }
 
@@ -329,27 +374,29 @@ async function saveEditJob() {
             selected.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '', views: oldViews });
         }
     });
-    if (selected.length === 0) return alert('กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ!');
+    
+    if (selected.length === 0) return Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ' });
+    
     const newTotalViews = selected.reduce((sum, p) => sum + p.views, 0);
 
     const updatedJob = { action: 'edit', id: id, date: document.getElementById('editJobDate').value, title: document.getElementById('editJobTitle').value, type: document.getElementById('editJobType').value, format: document.getElementById('editJobFormat').value, platforms: selected, totalViews: newTotalViews };
 
     const btnSubmit = document.getElementById('btnSaveEdit');
-    const originalBtnText = btnSubmit.innerHTML;
-    btnSubmit.disabled = true; btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+    btnSubmit.disabled = true;
 
     marketingData[jobIndex] = updatedJob;
     applyFilters(); updateChart(); closeEditModal();
+    showLoading('กำลังอัปเดตข้อมูล...');
 
     try {
         if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
             await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(updatedJob) });
         }
-        alert('✏️ แก้ไขข้อมูลสำเร็จ!');
+        Swal.fire({ icon: 'success', title: 'แก้ไขสำเร็จ!', showConfirmButton: false, timer: 1500 });
     } catch (error) {
-        console.error('Error:', error); alert('❌ สำเร็จฝั่งเว็บ แต่ส่ง Sheet ไม่เข้า');
+        Swal.fire({ icon: 'error', title: 'ข้อผิดพลาด', text: 'สำเร็จฝั่งเว็บ แต่บันทึกลง Sheet ไม่เข้า' });
     } finally {
-        btnSubmit.disabled = false; btnSubmit.innerHTML = originalBtnText;
+        btnSubmit.disabled = false;
     }
 }
 
@@ -360,7 +407,7 @@ async function saveJob() {
     const format = document.getElementById('jobFormat').value;
     const btnSubmit = document.getElementById('btnSaveMain');
 
-    if (!dateInput || !title) return alert('กรุณากรอกข้อมูลให้ครบครับ!');
+    if (!dateInput || !title) return Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกวันที่และชื่อชิ้นงานให้ครบครับ' });
 
     let selectedPlatforms = [];
     const platformCheckboxes = [
@@ -377,41 +424,55 @@ async function saveJob() {
         }
     });
 
-    if (selectedPlatforms.length === 0) return alert('กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ!');
+    if (selectedPlatforms.length === 0) return Swal.fire({ icon: 'warning', title: 'เลือกช่องทาง', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทางครับ' });
 
     const newJob = { action: 'add', id: Date.now(), date: dateInput, title: title, type: type, format: format, platforms: selectedPlatforms, totalViews: 0 };
-    const originalBtnText = btnSubmit.innerHTML;
-    btnSubmit.disabled = true; btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+    btnSubmit.disabled = true; 
 
     marketingData.push(newJob);
     document.getElementById('jobTitle').value = '';
     toggleLinkInputs(); setRandomMascots(); applyFilters(); updateChart();
 
+    showLoading('กำลังบันทึกข้อมูล...');
+
     try {
         if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
             await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(newJob) });
         }
-        alert('🎉 บันทึกสำเร็จ!');
+        Swal.fire({ icon: 'success', title: 'บันทึกชิ้นงานสำเร็จ!', showConfirmButton: false, timer: 1500 });
     } catch (error) {
-        console.error('Error!', error); alert('❌ บันทึกหน้าเว็บสำเร็จ แต่เข้า Sheet ไม่ได้');
+        Swal.fire({ icon: 'error', title: 'ข้อผิดพลาด', text: 'บันทึกหน้าเว็บสำเร็จ แต่เข้า Sheet ไม่ได้' });
     } finally {
-        btnSubmit.disabled = false; btnSubmit.innerHTML = originalBtnText;
+        btnSubmit.disabled = false;
     }
 }
 
-async function deleteJob(id) {
-    if (confirm('ลบถาวร?')) {
-        marketingData = marketingData.filter(j => j.id !== id); 
-        setRandomMascots(); applyFilters(); updateChart(); 
-        try {
-            if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-                await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'delete', id: id }) });
+function deleteJob(id) {
+    Swal.fire({
+        title: 'ยืนยันการลบ?',
+        text: "หากลบแล้วจะไม่สามารถกู้คืนได้!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'ลบเลย!',
+        cancelButtonText: 'ยกเลิก'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            marketingData = marketingData.filter(j => j.id !== id); 
+            setRandomMascots(); applyFilters(); updateChart(); 
+            
+            showToast('success', 'ลบข้อมูลเรียบร้อยแล้ว');
+            
+            try {
+                if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
+                    await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'delete', id: id }) });
+                }
+            } catch (error) {
+                console.error('Error:', error);
             }
-            alert('🗑️ ลบสำเร็จ!');
-        } catch (error) {
-            console.error('Error:', error); alert('❌ ลบหน้าเว็บสำเร็จ แต่ Sheet ไม่ลบให้');
         }
-    }
+    });
 }
 
 function getBarGradient(context) {
@@ -490,7 +551,6 @@ function closePreviewModal() { document.getElementById('previewModal').style.dis
 function generateTableRows(data) {
     if (data.length === 0) return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
     
-    // 🌟 เพิ่มคำสั่งตรวจสอบโหมด เพื่อนำไปซ่อนปุ่ม 🌟
     const disabledState = isExecutiveMode ? 'disabled' : '';
 
     return data.map(j => {
@@ -511,7 +571,7 @@ function generateTableRows(data) {
                     <td>${platformBadges}</td>
                     <td>${previewActionHtml}${linkButtonsHtml}</td>
                     <td><b style="color:var(--primary); font-size:1.2em;">${actualTotalViews.toLocaleString()}</b><br><button class="btn-action" style="margin-top: 5px;" onclick="openViewsModal(${j.id})">📊 แยกช่องทาง</button></td>
-                    <td>
+                    <td class="action-group">
                         <button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;" ${disabledState}>✏️ แก้ไข</button><br>
                         <button class="btn-action btn-danger" onclick="deleteJob(${j.id})" ${disabledState}>🗑️ ลบ</button>
                     </td>
@@ -573,36 +633,29 @@ function changePage(direction) { currentPage += direction; updateAllContentTable
 function openAllContentModal() { currentPage = 1; applyFilters(); document.getElementById('allContentModal').style.display = 'flex'; }
 function closeAllContentModal() { document.getElementById('allContentModal').style.display = 'none'; }
 
-// 🌟 พระเอกของงาน: ฟังก์ชันโหลดข้อมูลจาก Sheet (Cloud-First) 🌟
 function loadDataFromGoogleSheet() {
+    showLoading('กำลังดึงข้อมูลล่าสุด...');
+
     fetch(GOOGLE_SHEET_URL)
         .then(response => response.json())
         .then(data => {
             if (data && data.result === "success") {
-                
-                // 🌟 ดึงข้อมูลชิ้นงาน 🌟
                 if (data.marketingData || data.data) {
                     marketingData = data.marketingData || data.data; 
                     localStorage.setItem('marketingData', JSON.stringify(marketingData)); 
                 }
                 
-                // 🌟 ดึงข้อมูลเป้าหมาย (Targets) 🌟
                 if (data.targets && Object.keys(data.targets).length > 0) {
                     platformTargets = data.targets;
                     localStorage.setItem('platformTargets', JSON.stringify(platformTargets));
                 }
 
-                // 🌟 ดึงข้อมูลอัปเดตล่าสุด 🌟
                 if (data.lastUpdate && data.lastUpdate !== "ยังไม่มีข้อมูล") {
-                    
                     let formattedDate = data.lastUpdate;
                     if (formattedDate.includes('T')) {
                         let d = new Date(formattedDate);
-                        if (!isNaN(d.getTime())) {
-                            formattedDate = d.toLocaleDateString('en-GB'); 
-                        }
+                        if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString('en-GB'); 
                     }
-
                     document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${formattedDate}`;
                     localStorage.setItem('targetLastUpdated', formattedDate);
                 }
@@ -612,18 +665,17 @@ function loadDataFromGoogleSheet() {
                 updateChart();
                 setRandomMascots();
             }
-            document.getElementById('loadingOverlay').style.display = 'none'; 
+            Swal.close();
+            showToast('success', 'ซิงค์ข้อมูลเรียบร้อย');
         })
         .catch(error => {
             console.error("Fetch Error:", error);
-            
-            // ใช้ Fallback กรณีออฟไลน์หรือเน็ตมีปัญหา
             marketingData = JSON.parse(localStorage.getItem('marketingData')) || [];
             renderTargets();
             applyFilters(); 
             updateChart(); 
             setRandomMascots();
-            document.getElementById('loadingOverlay').style.display = 'none';
+            Swal.fire({ icon: 'info', title: 'ออฟไลน์โหมด', text: 'ไม่สามารถเชื่อมต่อ Server ได้ จึงแสดงข้อมูลล่าสุดในเครื่องแทน', confirmButtonColor: '#4f46e5' });
         });
 }
 
