@@ -10,13 +10,11 @@
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
-
-<div id="loadingOverlay">
-    <div class="big-spinner"></div>
-    <h2 style="color: var(--primary);">กำลังซิงค์ข้อมูลจาก Google Sheet...</h2>
-</div>
 
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 15px;">
@@ -42,10 +40,10 @@
         <div class="target-card" style="border-color: var(--color-fb);" onclick="window.open('https://www.facebook.com/Sahaphanautosale', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-fb);">Facebook</span>
-                <span id="pct-Facebook">0%</span>
+                <span id="pct-Facebook" style="font-weight: 800;">0%</span>
             </div>
             <div class="progress-container">
-                <div id="bar-Facebook" class="progress-bar" style="width: 0%; background-color: var(--color-fb);"></div>
+                <div id="bar-Facebook" class="progress-bar" style="width: 0%;"></div>
             </div>
             <div class="target-stats">
                 <span id="cur-Facebook">ปัจจุบัน: 0</span>
@@ -56,10 +54,10 @@
         <div class="target-card" style="border-color: var(--color-tk);" onclick="window.open('https://www.tiktok.com/@isuzu_shp', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-tk);">TikTok</span>
-                <span id="pct-TikTok">0%</span>
+                <span id="pct-TikTok" style="font-weight: 800;">0%</span>
             </div>
             <div class="progress-container">
-                <div id="bar-TikTok" class="progress-bar" style="width: 0%; background-color: var(--color-tk);"></div>
+                <div id="bar-TikTok" class="progress-bar" style="width: 0%;"></div>
             </div>
             <div class="target-stats">
                 <span id="cur-TikTok">ปัจจุบัน: 0</span>
@@ -70,10 +68,10 @@
         <div class="target-card" style="border-color: var(--color-yt);" onclick="window.open('https://www.youtube.com/@%E0%B8%AD%E0%B8%B5%E0%B8%8B%E0%B8%B9%E0%B8%8B%E0%B8%B8%E0%B8%AA%E0%B8%AB%E0%B8%B0%E0%B8%A0%E0%B8%B1%E0%B8%93%E0%B8%91%E0%B9%8C', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-yt);">YouTube</span>
-                <span id="pct-YouTube">0%</span>
+                <span id="pct-YouTube" style="font-weight: 800;">0%</span>
             </div>
             <div class="progress-container">
-                <div id="bar-YouTube" class="progress-bar" style="width: 0%; background-color: var(--color-yt);"></div>
+                <div id="bar-YouTube" class="progress-bar" style="width: 0%;"></div>
             </div>
             <div class="target-stats">
                 <span id="cur-YouTube">ปัจจุบัน: 0</span>
@@ -84,10 +82,10 @@
         <div class="target-card" style="border-color: var(--color-line);" onclick="window.open('https://lin.ee/VrAaVTj', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-line);">Line OA</span>
-                <span id="pct-Line OA">0%</span>
+                <span id="pct-Line OA" style="font-weight: 800;">0%</span>
             </div>
             <div class="progress-container">
-                <div id="bar-Line OA" class="progress-bar" style="width: 0%; background-color: var(--color-line);"></div>
+                <div id="bar-Line OA" class="progress-bar" style="width: 0%;"></div>
             </div>
             <div class="target-stats">
                 <span id="cur-Line OA">ปัจจุบัน: 0</span>
@@ -183,18 +181,10 @@
                 <div class="filter-container">
                     <select id="monthFilter" class="form-control" style="width: auto; padding: 6px 10px; font-weight: bold; background: #f9fafb;" onchange="applyFilters(); updateMonthlyStatus();">
                         <option value="all">🗓️ ทุกเดือน (All)</option>
-                        <option value="0">มกราคม (Jan)</option>
-                        <option value="1">กุมภาพันธ์ (Feb)</option>
-                        <option value="2">มีนาคม (Mar)</option>
-                        <option value="3">เมษายน (Apr)</option>
-                        <option value="4">พฤษภาคม (May)</option>
-                        <option value="5">มิถุนายน (Jun)</option>
-                        <option value="6">กรกฎาคม (Jul)</option>
-                        <option value="7">สิงหาคม (Aug)</option>
-                        <option value="8">กันยายน (Sep)</option>
-                        <option value="9">ตุลาคม (Oct)</option>
-                        <option value="10">พฤศจิกายน (Nov)</option>
-                        <option value="11">ธันวาคม (Dec)</option>
+                        <option value="0">มกราคม (Jan)</option><option value="1">กุมภาพันธ์ (Feb)</option><option value="2">มีนาคม (Mar)</option>
+                        <option value="3">เมษายน (Apr)</option><option value="4">พฤษภาคม (May)</option><option value="5">มิถุนายน (Jun)</option>
+                        <option value="6">กรกฎาคม (Jul)</option><option value="7">สิงหาคม (Aug)</option><option value="8">กันยายน (Sep)</option>
+                        <option value="9">ตุลาคม (Oct)</option><option value="10">พฤศจิกายน (Nov)</option><option value="11">ธันวาคม (Dec)</option>
                     </select>
 
                     <div class="custom-select-wrapper">
@@ -242,7 +232,7 @@
         </div>
         
         <div style="overflow-x: auto; padding-bottom: 15px;">
-            <table>
+            <table class="premium-table">
                 <thead>
                     <tr>
                         <th>วันที่</th>
@@ -341,7 +331,7 @@
             <span id="allContentCount" style="color: var(--text-muted); font-size: 0.9em; font-weight: bold;"></span>
         </div>
         <div style="overflow: auto; flex: 1;">
-            <table style="margin-top: 0;">
+            <table class="premium-table" style="margin-top: 0;">
                 <thead>
                     <tr>
                         <th>วันที่</th>
