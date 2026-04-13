@@ -608,7 +608,7 @@ h1, h2, h3 {
 }
 
 /* ==================================
-   🔥 CSS สำหรับ Upsell Badges (ใหม่) 🔥
+   🔥 CSS สำหรับ Upsell Badges & TIPS (ใหม่) 🔥
    ================================== */
 .stat-badge {
     padding: 8px 16px;
@@ -639,6 +639,17 @@ h1, h2, h3 {
 .bg-green { background-color: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
 .bg-orange { background-color: #fff7ed; color: #9a3412; border-color: #ffedd5; }
 .bg-red { background-color: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+.info-tips-box {
+    margin-top: 15px;
+    font-size: 0.85em;
+    color: var(--text-muted);
+    background: #f8fafc;
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px dashed var(--border);
+    display: inline-block;
+}
 
 @media (max-width: 768px) { 
     body { padding: 10px; } 
