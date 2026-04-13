@@ -943,7 +943,7 @@ function closeAllContentModal() {
 
 // 🌟 โหลดข้อมูลทั้งหมดจาก Google Sheet (รวม Campaign) 🌟
 function loadDataFromGoogleSheet() {
-    showLoading('กำลังดึงข้อมูลระบบบัญชาการ...');
+    showLoading('กำลังดึงข้อ Google Sheet');
     fetch(GOOGLE_SHEET_URL)
         .then(response => response.json())
         .then(data => {
