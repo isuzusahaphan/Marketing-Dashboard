@@ -93,7 +93,7 @@
 
     <div class="campaign-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 style="margin: 0; font-size: 1.2em; color: var(--text-main);"><i class="fas fa-gift" style="color: var(--isuzu-red);"></i> แคมเปญพิเศษรายไตรมาส</h2>
+            <h2 style="margin: 0; font-size: 1.2em; color: var(--text-main);"><i class="fas fa-gift" style="color: var(--isuzu-red);"></i> สรุป Campaign ฝ่ายบริการ</h2>
             <button id="btnAddCampaign" class="btn-action" style="background: var(--primary); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; display: none; align-items: center; justify-content: center;" onclick="openAddCampaignModal()">
                 <i class="fas fa-plus"></i>
             </button>
@@ -333,15 +333,15 @@
 <div id="addCampaignModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeAddCampaignModal()">&times;</span>
-        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">🎁 เพิ่มแคมเปญใหม่</h2>
-        <div class="form-group"><label>ชื่อแคมเปญ</label><input type="text" id="cam-name" class="form-control" placeholder="เช่น ส่วนลดน้ำมันเครื่อง Z7"></div>
-        <div class="form-group"><label>ลิงก์ Google Sheet ของแคมเปญ</label><input type="text" id="cam-url" class="form-control" placeholder="วาง URL ของ Spreadsheet แคมเปญ"></div>
+        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">เพิ่มแคมเพจ์น</h2>
+        <div class="form-group"><label>ชื่อแคมเพจ์น</label><input type="text" id="cam-name" class="form-control" placeholder="เช่น ส่วนลดน้ำมันเครื่อง Z7"></div>
+        <div class="form-group"><label>ลิงก์ Google Sheet ของแคมเพจ์น</label><input type="text" id="cam-url" class="form-control" placeholder="วาง URL ของ Spreadsheet แคมเพจ์น"></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
             <div class="form-group"><label>วันที่เริ่ม</label><input type="date" id="cam-start" class="form-control"></div>
             <div class="form-group"><label>วันที่สิ้นสุด</label><input type="date" id="cam-end" class="form-control"></div>
         </div>
         <div class="form-group" style="margin-top: 15px;"><label>เป้าหมาย (จำนวนรถ/คัน)</label><input type="number" id="cam-target" class="form-control" value="100"></div>
-        <button class="btn-submit" onclick="saveNewCampaign()">💾 บันทึกแคมเปญ</button>
+        <button class="btn-submit" onclick="saveNewCampaign()">💾 บันทึกแคมเพจ์น</button>
     </div>
 </div>
 
