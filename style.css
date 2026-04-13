@@ -607,6 +607,39 @@ h1, h2, h3 {
     display: block; 
 }
 
+/* ==================================
+   🔥 CSS สำหรับ Upsell Badges (ใหม่) 🔥
+   ================================== */
+.stat-badge {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.95em;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.stat-badge .stat-title {
+    font-size: 0.8em;
+    font-weight: 500;
+    opacity: 0.8;
+    margin-bottom: 2px;
+}
+
+.stat-badge .stat-value {
+    font-size: 1.2em;
+    line-height: 1;
+}
+
+.bg-blue { background-color: #eff6ff; color: #1e3a8a; border-color: #bfdbfe; }
+.bg-gray { background-color: #f8fafc; color: #475569; border-color: #e2e8f0; }
+.bg-green { background-color: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+.bg-orange { background-color: #fff7ed; color: #9a3412; border-color: #ffedd5; }
+.bg-red { background-color: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
 @media (max-width: 768px) { 
     body { padding: 10px; } 
     .target-setup-grid { grid-template-columns: 1fr; gap: 10px; } 
