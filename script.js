@@ -45,6 +45,7 @@ let isExecutiveMode = true;
 
 // ตัวแปร Detail แคมเปญ
 let currentDetailCampaign = null;
+let currentEditCampaignId = null; // 🌟 เก็บ ID แคมเปญที่กำลังกดแก้ไข
 let detailPage = 1;
 
 const mascots = ['ISZ-Mascot-Master.png']; 
@@ -151,7 +152,8 @@ function renderCampaignCards() {
         if (!isExecutiveMode) {
             editTools = `
                 <div class="cam-edit-tools">
-                    <button class="btn-action" style="padding:4px 8px; border-color:#fca5a5; color:#b91c1c; background:#fee2e2;" onclick="event.stopPropagation(); deleteCampaign(${cam.id})"><i class="fas fa-trash"></i></button>
+                    <button class="btn-action" style="padding:4px 8px; border-color:#9ca3af; color:#475569;" onclick="event.stopPropagation(); openEditCampaignModal(${cam.id})" title="แก้ไขข้อมูลแคมเปญ"><i class="fas fa-edit"></i></button>
+                    <button class="btn-action" style="padding:4px 8px; border-color:#fca5a5; color:#b91c1c; background:#fee2e2;" onclick="event.stopPropagation(); deleteCampaign(${cam.id})" title="ลบแคมเปญ"><i class="fas fa-trash"></i></button>
                 </div>
             `;
         }
@@ -186,23 +188,20 @@ function openCampaignDetail(camId) {
     
     // รีเซ็ต Filter กลับเป็นค่าเริ่มต้น
     document.getElementById('detailAdvisorFilter').value = 'all';
+    document.getElementById('detailSortOrder').value = 'date_asc'; // ตั้ง Default ให้เรียงวันที่ก่อน
     
-    // ตั้งค่า Input วันที่ ให้ครอบคลุมระยะเวลาแคมเปญ
-    let sDate = currentDetailCampaign.start.split('T')[0]; // Format YYYY-MM-DD
+    let sDate = currentDetailCampaign.start.split('T')[0]; 
     let eDate = currentDetailCampaign.end.split('T')[0];
     document.getElementById('detailStartDate').value = sDate;
     document.getElementById('detailEndDate').value = eDate;
 
-    // สั่งวาดตาราง ซึ่งจะทำการคำนวณและวาด Header ใหม่อัตโนมัติ
     renderCampaignDetailTable();
-    
     document.getElementById('campaignDetailModal').style.display = 'flex';
 }
 
-// 🌟 แคมเปญ: ล้างตัวกรอง
 function resetCampaignFilter() {
     document.getElementById('detailAdvisorFilter').value = 'all';
-    document.getElementById('detailSortOrder').value = 'desc';
+    document.getElementById('detailSortOrder').value = 'date_asc';
     document.getElementById('detailStartDate').value = currentDetailCampaign.start.split('T')[0];
     document.getElementById('detailEndDate').value = currentDetailCampaign.end.split('T')[0];
     renderCampaignDetailTable();
@@ -225,7 +224,6 @@ function renderCampaignDetailTable() {
     // 2. กรองด้วยวันที่
     if (startDateStr && endDateStr) {
         const sTime = new Date(startDateStr).getTime();
-        // บวก 1 วัน เพื่อให้ครอบคลุมถึงสิ้นสุดวันนั้นๆ (23:59:59)
         const eTime = new Date(endDateStr).getTime() + (24 * 60 * 60 * 1000) - 1; 
 
         filtered = filtered.filter(d => {
@@ -234,20 +232,29 @@ function renderCampaignDetailTable() {
         });
     }
     
-    // 3. เรียงลำดับ
-    filtered.sort((a, b) => sortOrder === 'desc' ? b.cost - a.cost : a.cost - b.cost);
+    // 3. เรียงลำดับ (เพิ่มการเรียงตามวันที่)
+    if (sortOrder === 'date_asc') {
+        filtered.sort((a, b) => new Date(a.date) - new Date(b.date)); // วันที่: เก่า -> ใหม่
+    } else if (sortOrder === 'date_desc') {
+        filtered.sort((a, b) => new Date(b.date) - new Date(a.date)); // วันที่: ใหม่ -> เก่า
+    } else if (sortOrder === 'desc') {
+        filtered.sort((a, b) => b.cost - a.cost); // เงิน: มาก -> น้อย
+    } else {
+        filtered.sort((a, b) => a.cost - b.cost); // เงิน: น้อย -> มาก
+    }
 
     // --- 🧮 การคำนวณยอดเงินอัจฉริยะ (Upsell) 🧮 ---
     const totalCars = filtered.length;
     const basePrice = parseInt(currentDetailCampaign.basePrice) || 0;
     
-    const baseRevenue = totalCars * basePrice; // รายได้ที่ควรจะได้ขั้นต่ำ
-    const totalRevenue = filtered.reduce((sum, d) => sum + d.cost, 0); // รายได้กวาดมาได้จริงทั้งหมด
-    const upsellRevenue = totalRevenue - baseRevenue; // ยอดขายส่วนเพิ่ม
+    const baseRevenue = totalCars * basePrice; 
+    const totalRevenue = filtered.reduce((sum, d) => sum + d.cost, 0); 
+    const upsellRevenue = totalRevenue - baseRevenue; 
 
-    // วาด Header Badges ใหม่
+    // วาด Header Badges และกล่อง TIPS อธิบาย
     document.getElementById('campaignDetailHeader').innerHTML = `
         <h2 style="color: var(--isuzu-red); margin:0;"><i class="fas fa-gift"></i> ${currentDetailCampaign.name}</h2>
+        
         <div style="margin-top:15px; display:flex; gap:12px; flex-wrap:wrap;">
             <div class="stat-badge bg-blue">
                 <span class="stat-title">จำนวนรถที่เข้า</span>
@@ -266,6 +273,11 @@ function renderCampaignDetailTable() {
                 <span class="stat-value">${upsellRevenue > 0 ? '+' : ''} ฿ ${upsellRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
             </div>
         </div>
+        
+        <div style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted); background: #f8fafc; padding: 10px 15px; border-radius: 6px; border: 1px dashed var(--border);">
+            <i class="fas fa-info-circle" style="color: var(--primary);"></i> <b>TIPS การคำนวณ:</b> 
+            รายได้พื้นฐาน = จำนวนรถ x ${basePrice > 0 ? `ราคาแพ็กเกจ (฿${basePrice.toLocaleString()})` : 'ราคาเริ่มต้น'}  |  ยอดขายเพิ่ม (Upsell) = รายได้รวมทั้งหมด - รายได้พื้นฐาน
+        </div>
     `;
 
     // --- วาดตาราง Pagination ---
@@ -274,12 +286,11 @@ function renderCampaignDetailTable() {
     const pageData = filtered.slice(start, start + itemsPerPage);
 
     let tableHtml = pageData.map(d => {
-        // จัด Format Date จาก YYYY-MM-DD กลับเป็น DD/MM/YYYY ตอนแสดงผล
         let displayDate = d.date;
         try {
             const parts = d.date.split('-');
             if(parts.length === 3) {
-                displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`; // แปลง YYYY-MM-DD เป็น DD/MM/YYYY ให้ดูง่าย
             }
         } catch(e) {}
 
@@ -314,8 +325,34 @@ function renderCampaignDetailTable() {
     `;
 }
 
-// 🌟 แคมเปญ: เพิ่มและลบ
+// 🌟 แคมเปญ: เปิดหน้าต่างสร้างใหม่
 function openAddCampaignModal() { 
+    currentEditCampaignId = null; // รีเซ็ต ID ให้เป็นการสร้างใหม่
+    document.getElementById('cam-name').value = '';
+    document.getElementById('cam-url').value = '';
+    document.getElementById('cam-start').value = '';
+    document.getElementById('cam-end').value = '';
+    document.getElementById('cam-target').value = '100';
+    document.getElementById('cam-base-price').value = '0';
+    
+    document.getElementById('addCampaignModal').querySelector('h2').innerHTML = '🎁 เพิ่มแคมเปญใหม่';
+    document.getElementById('addCampaignModal').style.display = 'flex'; 
+}
+
+// 🌟 แคมเปญ: เปิดหน้าต่างแก้ไข
+function openEditCampaignModal(camId) {
+    const cam = campaignData.find(c => c.id === camId);
+    if (!cam) return;
+    
+    currentEditCampaignId = camId; // บันทึก ID ไว้รอตอนกด Save
+    document.getElementById('cam-name').value = cam.name;
+    document.getElementById('cam-url').value = cam.url;
+    document.getElementById('cam-start').value = cam.start ? cam.start.split('T')[0] : '';
+    document.getElementById('cam-end').value = cam.end ? cam.end.split('T')[0] : '';
+    document.getElementById('cam-target').value = cam.target;
+    document.getElementById('cam-base-price').value = cam.basePrice || 0;
+    
+    document.getElementById('addCampaignModal').querySelector('h2').innerHTML = '✏️ แก้ไขแคมเปญ';
     document.getElementById('addCampaignModal').style.display = 'flex'; 
 }
 
@@ -327,6 +364,7 @@ function closeCampaignDetailModal() {
     document.getElementById('campaignDetailModal').style.display = 'none'; 
 }
 
+// 🌟 แคมเปญ: บันทึก (ทั้งสร้างใหม่และแก้ไข)
 async function saveNewCampaign() {
     const name = document.getElementById('cam-name').value.trim();
     const url = document.getElementById('cam-url').value.trim();
@@ -339,7 +377,10 @@ async function saveNewCampaign() {
         return Swal.fire({icon:'warning', text:'กรุณากรอกข้อมูลให้ครบถ้วน'});
     }
 
-    showLoading('กำลังบันทึกแคมเปญใหม่');
+    const actionType = currentEditCampaignId ? 'editCampaign' : 'addCampaign';
+    const loadingMsg = currentEditCampaignId ? 'กำลังอัปเดตข้อมูลแคมเปญ...' : 'กำลังบันทึกแคมเปญใหม่ และเจาะทะลุข้อมูล...';
+
+    showLoading(loadingMsg);
     
     try {
         await fetch(GOOGLE_SHEET_URL, {
@@ -347,7 +388,8 @@ async function saveNewCampaign() {
             mode: 'no-cors', 
             headers: {'Content-Type': 'text/plain;charset=utf-8'},
             body: JSON.stringify({ 
-                action: 'addCampaign', 
+                action: actionType, 
+                id: currentEditCampaignId, // จะมีค่าถ้าเป็นการแก้ไข ถ้าเป็นสร้างใหม่จะเป็น null (Code.gs จะสนใจแค่ตอนแก้ไข)
                 name: name, 
                 url: url, 
                 start: start, 
@@ -370,19 +412,30 @@ async function saveNewCampaign() {
     }
 }
 
+// 🌟 แคมเปญ: ลบ (ยิงไปลบใน Sheet จริงๆ)
 function deleteCampaign(id) {
     Swal.fire({
         title: 'ยืนยันการลบแคมเปญ?', 
-        text: "ลบแล้วจะไม่สามารถเรียกคืนได้", 
+        text: "ระบบจะลบข้อมูลการตั้งค่าแคมเปญนี้ออกจากแดชบอร์ดถาวร", 
         icon: 'warning',
         showCancelButton: true, 
         confirmButtonColor: '#d33', 
         confirmButtonText: 'ลบเลย!'
     }).then(async (result) => {
         if (result.isConfirmed) {
-            campaignData = campaignData.filter(c => c.id !== id);
-            renderCampaignCards();
-            showToast('success', 'ซ่อนแคมเปญเรียบร้อย (กรุณาลบข้อมูลจริงใน Google Sheet)');
+            showLoading('กำลังลบแคมเปญ...');
+            try {
+                await fetch(GOOGLE_SHEET_URL, {
+                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'deleteCampaign', id: id })
+                });
+                
+                campaignData = campaignData.filter(c => c.id !== id);
+                renderCampaignCards();
+                Swal.fire({ icon: 'success', title: 'ลบสำเร็จ!', showConfirmButton: false, timer: 1500 });
+            } catch(e) {
+                Swal.fire({icon:'error', text:'ลบไม่สำเร็จ กรุณาลองใหม่'});
+            }
         }
     });
 }
