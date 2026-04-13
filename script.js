@@ -33,7 +33,7 @@ let platformTargets = JSON.parse(localStorage.getItem('platformTargets')) || {
     'Line OA': { current: 0, target: 100 } 
 };
 let marketingData = []; 
-let campaignData = []; // ก้อนข้อมูลแคมเปญ
+let campaignData = []; 
 let filteredAllData = [];
 let currentPage = 1;
 const itemsPerPage = 10;
@@ -83,7 +83,7 @@ function showToast(icon, title) {
 function toggleDropdown(id) {
     const dropdown = document.getElementById(id);
     document.querySelectorAll('.custom-select-dropdown').forEach(el => { 
-        if(el.id !== id) {
+        if(el.id !== id) { 
             el.classList.remove('show'); 
         }
     });
@@ -109,19 +109,19 @@ function toggleMode() {
         btn.innerHTML = '👨‍💼 โหมดผู้บริหาร'; 
         btn.style.background = '#10b981'; 
         btnSetTarget.disabled = true;
-        if(btnAddCam) {
-            btnAddCam.style.display = 'none';
+        if(btnAddCam) { 
+            btnAddCam.style.display = 'none'; 
         }
     } else {
         grid.classList.remove('executive-mode');
         btn.innerHTML = '📝 โหมดบันทึกงาน'; 
         btn.style.background = '#f59e0b'; 
         btnSetTarget.disabled = false;
-        if(btnAddCam) {
-            btnAddCam.style.display = 'flex';
+        if(btnAddCam) { 
+            btnAddCam.style.display = 'flex'; 
         }
     }
-    renderCampaignCards(); // รีเฟรชปุ่มลบแคมเปญ
+    renderCampaignCards();
     applyFilters();
     setTimeout(() => { 
         if (monthlyChartInstance) {
@@ -145,9 +145,8 @@ function renderCampaignCards() {
         const endDate = new Date(cam.end);
         const isRunning = today <= endDate;
         const statusClass = isRunning ? 'status-running' : 'status-ended';
-        const statusText = isRunning ? '🟢 กำลังดำเนินการ' : '⚪ จบแคมเพจ์นแล้ว';
+        const statusText = isRunning ? '🟢 กำลังดำเนินการ' : '⚪ จบแคมเปญแล้ว';
         
-        // ปุ่มลบแคมเปญจะโชว์ตอนปิดโหมดผู้บริหาร
         let editTools = '';
         if (!isExecutiveMode) {
             editTools = `
@@ -184,40 +183,109 @@ function openCampaignDetail(camId) {
     if (!currentDetailCampaign) return;
     
     detailPage = 1;
-    document.getElementById('campaignDetailHeader').innerHTML = `
-        <h2 style="color: var(--isuzu-red); margin:0;"><i class="fas fa-gift"></i> ${currentDetailCampaign.name}</h2>
-        <div style="margin-top:15px; display:flex; gap:15px; flex-wrap:wrap;">
-            <div class="black-badge" style="font-size:1em; padding:8px 18px;">💰 รายได้รวม: ฿ ${currentDetailCampaign.revenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
-            <div class="black-badge" style="background:#059669; font-size:1em; padding:8px 18px;">🚘 รถเข้ารับบริการ: ${currentDetailCampaign.actual} คัน</div>
-        </div>
-    `;
+    
+    // รีเซ็ต Filter กลับเป็นค่าเริ่มต้น
+    document.getElementById('detailAdvisorFilter').value = 'all';
+    
+    // ตั้งค่า Input วันที่ ให้ครอบคลุมระยะเวลาแคมเปญ
+    let sDate = currentDetailCampaign.start.split('T')[0]; // Format YYYY-MM-DD
+    let eDate = currentDetailCampaign.end.split('T')[0];
+    document.getElementById('detailStartDate').value = sDate;
+    document.getElementById('detailEndDate').value = eDate;
+
+    // สั่งวาดตาราง ซึ่งจะทำการคำนวณและวาด Header ใหม่อัตโนมัติ
     renderCampaignDetailTable();
+    
     document.getElementById('campaignDetailModal').style.display = 'flex';
 }
 
-// 🌟 แคมเปญ: วาดตารางรายละเอียด
+// 🌟 แคมเปญ: ล้างตัวกรอง
+function resetCampaignFilter() {
+    document.getElementById('detailAdvisorFilter').value = 'all';
+    document.getElementById('detailSortOrder').value = 'desc';
+    document.getElementById('detailStartDate').value = currentDetailCampaign.start.split('T')[0];
+    document.getElementById('detailEndDate').value = currentDetailCampaign.end.split('T')[0];
+    renderCampaignDetailTable();
+}
+
+// 🌟 แคมเปญ: วาดตารางและคำนวณยอด Upsell 🌟
 function renderCampaignDetailTable() {
     const advisorFilter = document.getElementById('detailAdvisorFilter').value;
     const sortOrder = document.getElementById('detailSortOrder').value;
+    const startDateStr = document.getElementById('detailStartDate').value;
+    const endDateStr = document.getElementById('detailEndDate').value;
     
-    // ดึง data ในแคมเปญมากรอง
     let filtered = [...currentDetailCampaign.data];
+
+    // 1. กรองด้วย SA
     if(advisorFilter !== 'all') {
         filtered = filtered.filter(d => d.advisor.includes(advisorFilter));
     }
     
-    // เรียงลำดับ
+    // 2. กรองด้วยวันที่
+    if (startDateStr && endDateStr) {
+        const sTime = new Date(startDateStr).getTime();
+        // บวก 1 วัน เพื่อให้ครอบคลุมถึงสิ้นสุดวันนั้นๆ (23:59:59)
+        const eTime = new Date(endDateStr).getTime() + (24 * 60 * 60 * 1000) - 1; 
+
+        filtered = filtered.filter(d => {
+            const rowTime = new Date(d.date).getTime();
+            return rowTime >= sTime && rowTime <= eTime;
+        });
+    }
+    
+    // 3. เรียงลำดับ
     filtered.sort((a, b) => sortOrder === 'desc' ? b.cost - a.cost : a.cost - b.cost);
 
-    const totalItems = filtered.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    // --- 🧮 การคำนวณยอดเงินอัจฉริยะ (Upsell) 🧮 ---
+    const totalCars = filtered.length;
+    const basePrice = parseInt(currentDetailCampaign.basePrice) || 0;
+    
+    const baseRevenue = totalCars * basePrice; // รายได้ที่ควรจะได้ขั้นต่ำ
+    const totalRevenue = filtered.reduce((sum, d) => sum + d.cost, 0); // รายได้กวาดมาได้จริงทั้งหมด
+    const upsellRevenue = totalRevenue - baseRevenue; // ยอดขายส่วนเพิ่ม
+
+    // วาด Header Badges ใหม่
+    document.getElementById('campaignDetailHeader').innerHTML = `
+        <h2 style="color: var(--isuzu-red); margin:0;"><i class="fas fa-gift"></i> ${currentDetailCampaign.name}</h2>
+        <div style="margin-top:15px; display:flex; gap:12px; flex-wrap:wrap;">
+            <div class="stat-badge bg-blue">
+                <span class="stat-title">จำนวนรถที่เข้า</span>
+                <span class="stat-value">${totalCars} <span style="font-size:0.6em;">คัน</span></span>
+            </div>
+            <div class="stat-badge bg-gray" title="รายได้ขั้นต่ำ (คันละ ฿${basePrice.toLocaleString()})">
+                <span class="stat-title">รายได้พื้นฐาน (Base)</span>
+                <span class="stat-value">฿ ${baseRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+            </div>
+            <div class="stat-badge bg-green">
+                <span class="stat-title">รายได้รวมทั้งหมด (Total)</span>
+                <span class="stat-value">฿ ${totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+            </div>
+            <div class="stat-badge ${upsellRevenue >= 0 ? 'bg-orange' : 'bg-red'}">
+                <span class="stat-title">ยอดขายเพิ่ม (Upsell)</span>
+                <span class="stat-value">${upsellRevenue > 0 ? '+' : ''} ฿ ${upsellRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+            </div>
+        </div>
+    `;
+
+    // --- วาดตาราง Pagination ---
+    const totalPages = Math.ceil(totalCars / itemsPerPage) || 1;
     const start = (detailPage - 1) * itemsPerPage;
     const pageData = filtered.slice(start, start + itemsPerPage);
 
     let tableHtml = pageData.map(d => {
+        // จัด Format Date จาก YYYY-MM-DD กลับเป็น DD/MM/YYYY ตอนแสดงผล
+        let displayDate = d.date;
+        try {
+            const parts = d.date.split('-');
+            if(parts.length === 3) {
+                displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+        } catch(e) {}
+
         return `
             <tr>
-                <td>${d.date}</td>
+                <td>${displayDate}</td>
                 <td><b>${d.jobNo}</b></td>
                 <td>${d.advisor}</td>
                 <td style="color:#059669; font-weight:bold;">฿ ${d.cost.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
@@ -234,7 +302,7 @@ function renderCampaignDetailTable() {
     }).join('');
 
     if (!tableHtml) {
-        tableHtml = '<tr><td colspan="5" style="text-align:center; padding:30px;">ไม่พบข้อมูลลูกค้ารายการนี้</td></tr>';
+        tableHtml = '<tr><td colspan="5" style="text-align:center; padding:30px;">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
     }
 
     document.getElementById('campaignDetailTableBody').innerHTML = tableHtml;
@@ -265,6 +333,7 @@ async function saveNewCampaign() {
     const start = document.getElementById('cam-start').value;
     const end = document.getElementById('cam-end').value;
     const target = document.getElementById('cam-target').value;
+    const basePrice = document.getElementById('cam-base-price').value || 0; 
 
     if(!name || !url || !start || !end) {
         return Swal.fire({icon:'warning', text:'กรุณากรอกข้อมูลให้ครบถ้วน'});
@@ -277,7 +346,15 @@ async function saveNewCampaign() {
             method: 'POST', 
             mode: 'no-cors', 
             headers: {'Content-Type': 'text/plain;charset=utf-8'},
-            body: JSON.stringify({ action: 'addCampaign', name: name, url: url, start: start, end: end, targetCars: target })
+            body: JSON.stringify({ 
+                action: 'addCampaign', 
+                name: name, 
+                url: url, 
+                start: start, 
+                end: end, 
+                targetCars: target,
+                basePrice: basePrice 
+            })
         });
         
         Swal.fire({
@@ -318,8 +395,8 @@ function updateMonthlyStatus() {
     let targetMonth = new Date().getMonth(); 
     let targetYear = new Date().getFullYear();
     
-    if (filterVal !== 'all') {
-        targetMonth = parseInt(filterVal);
+    if (filterVal !== 'all') { 
+        targetMonth = parseInt(filterVal); 
     }
     
     let currentMonthCount = 0;
@@ -361,7 +438,9 @@ function updateMonthlyStatus() {
     }
     
     let pct = (currentMonthCount / 80) * 100; 
-    if (pct > 100) pct = 100;
+    if (pct > 100) {
+        pct = 100;
+    }
     
     let monthNameText = filterVal === 'all' ? "เดือนนี้" : document.getElementById('monthFilter').options[document.getElementById('monthFilter').selectedIndex].text.split(' ')[0];
 
@@ -418,19 +497,19 @@ async function saveTargets() {
     showLoading('กำลังบันทึกเป้าหมาย...');
     
     try {
-        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
+        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { 
             await fetch(GOOGLE_SHEET_URL, { 
                 method: 'POST', 
                 mode: 'no-cors', 
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
                 body: JSON.stringify({ action: 'saveTargets', targets: platformTargets, lastUpdate: nowStr }) 
-            });
+            }); 
         }
-        localStorage.setItem('platformTargets', JSON.stringify(platformTargets));
+        localStorage.setItem('platformTargets', JSON.stringify(platformTargets)); 
         localStorage.setItem('targetLastUpdated', nowStr);
         document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${nowStr}`;
         renderTargets(); 
-        closeTargetModal();
+        closeTargetModal(); 
         Swal.fire({ icon: 'success', title: 'อัปเดตเป้าหมายแล้ว!', showConfirmButton: false, timer: 1500 });
     } catch (error) { 
         Swal.fire({ icon: 'warning', title: 'บันทึกแค่ในเครื่อง', text: 'ส่งแผ่นงานไม่สำเร็จ' }); 
@@ -463,7 +542,9 @@ function toggleEditLinkInputs() {
     
     ['edit-link-fb','edit-link-tk','edit-link-yt','edit-link-line'].forEach(id => { 
         const el = document.getElementById(id); 
-        if (el) currentLinks[id] = el.value; 
+        if (el) {
+            currentLinks[id] = el.value; 
+        }
     });
     
     cont.innerHTML = '';
@@ -606,7 +687,6 @@ function openEditModal(jobId) {
         if (p.name === 'YouTube' && document.getElementById('edit-link-yt')) document.getElementById('edit-link-yt').value = p.link; 
         if (p.name === 'Line OA' && document.getElementById('edit-link-line')) document.getElementById('edit-link-line').value = p.link;
     });
-    
     document.getElementById('editJobModal').style.display = 'flex';
 }
 
@@ -636,7 +716,9 @@ async function saveEditJob() {
         }
     });
     
-    if (selected.length === 0) return Swal.fire({ icon: 'warning', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทาง' });
+    if (selected.length === 0) {
+        return Swal.fire({ icon: 'warning', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทาง' });
+    }
     
     const newTotalViews = selected.reduce((sum, p) => sum + p.views, 0);
     const updatedJob = { 
@@ -678,7 +760,9 @@ async function saveJob() {
     const format = document.getElementById('jobFormat').value;
     const btnSubmit = document.getElementById('btnSaveMain');
     
-    if (!dateInput || !title) return Swal.fire({ icon: 'warning', text: 'กรุณากรอกวันที่และชื่อชิ้นงานให้ครบครับ' });
+    if (!dateInput || !title) {
+        return Swal.fire({ icon: 'warning', text: 'กรุณากรอกวันที่และชื่อชิ้นงานให้ครบครับ' });
+    }
 
     let selectedPlatforms = []; 
     const platformCheckboxes = [
@@ -695,7 +779,9 @@ async function saveJob() {
         }
     });
     
-    if (selectedPlatforms.length === 0) return Swal.fire({ icon: 'warning', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทาง' });
+    if (selectedPlatforms.length === 0) {
+        return Swal.fire({ icon: 'warning', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทาง' });
+    }
 
     const newJob = { action: 'add', id: Date.now(), date: dateInput, title: title, type: type, format: format, platforms: selectedPlatforms, totalViews: 0 };
     btnSubmit.disabled = true; 
@@ -778,10 +864,14 @@ function updateChart() {
     let counts = new Array(12).fill(0);
     filteredAllData.forEach(j => { 
         const m = new Date(j.date).getMonth(); 
-        if (!isNaN(m)) counts[m]++; 
+        if (!isNaN(m)) {
+            counts[m]++; 
+        }
     });
     
-    if (monthlyChartInstance) monthlyChartInstance.destroy();
+    if (monthlyChartInstance) {
+        monthlyChartInstance.destroy();
+    }
     
     monthlyChartInstance = new Chart(ctx, {
         type: 'bar',
@@ -825,13 +915,17 @@ function updateChart() {
 }
 
 function generateTableRows(data) {
-    if (data.length === 0) return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
+    if (data.length === 0) {
+        return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
+    }
     
     const disabledState = isExecutiveMode ? 'disabled' : '';
 
     return data.map(j => {
         let actualTotalViews = j.platforms.reduce((sum, p) => sum + (p.views || 0), 0);
-        if (actualTotalViews === 0 && j.totalViews > 0) actualTotalViews = j.totalViews; 
+        if (actualTotalViews === 0 && j.totalViews > 0) {
+            actualTotalViews = j.totalViews; 
+        }
         
         const dateStr = new Date(j.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
         const formatColor = j.format === 'Videos' ? '#10b981' : '#f59e0b';
@@ -961,7 +1055,7 @@ function loadDataFromGoogleSheet() {
                     let formattedDate = data.lastUpdate;
                     if (formattedDate.includes('T')) { 
                         let d = new Date(formattedDate); 
-                        if (!isNaN(d.getTime())) {
+                        if (!isNaN(d.getTime())) { 
                             formattedDate = d.toLocaleDateString('en-GB'); 
                         }
                     }
@@ -996,7 +1090,7 @@ window.onload = () => {
 };
 
 window.onclick = (e) => { 
-    if (e.target.className === 'modal') {
+    if (e.target.className === 'modal') { 
         document.querySelectorAll('.modal').forEach(m => { m.style.display = 'none'; }); 
     }
 };
