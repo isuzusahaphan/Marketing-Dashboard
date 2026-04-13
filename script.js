@@ -339,7 +339,7 @@ async function saveNewCampaign() {
         return Swal.fire({icon:'warning', text:'กรุณากรอกข้อมูลให้ครบถ้วน'});
     }
 
-    showLoading('กำลังบันทึกแคมเปญใหม่ และเจาะทะลุข้อมูล...');
+    showLoading('กำลังบันทึกแคมเปญใหม่');
     
     try {
         await fetch(GOOGLE_SHEET_URL, {
@@ -1037,7 +1037,7 @@ function closeAllContentModal() {
 
 // 🌟 โหลดข้อมูลทั้งหมดจาก Google Sheet (รวม Campaign) 🌟
 function loadDataFromGoogleSheet() {
-    showLoading('กำลังดึงข้อ Google Sheet');
+    showLoading('กำลังดึงข้อมูล Google Sheet');
     fetch(GOOGLE_SHEET_URL)
         .then(response => response.json())
         .then(data => {
