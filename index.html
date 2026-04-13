@@ -333,15 +333,21 @@
 <div id="addCampaignModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeAddCampaignModal()">&times;</span>
-        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">เพิ่มแคมเพจ์น</h2>
-        <div class="form-group"><label>ชื่อแคมเพจ์น</label><input type="text" id="cam-name" class="form-control" placeholder="เช่น ส่วนลดน้ำมันเครื่อง Z7"></div>
-        <div class="form-group"><label>ลิงก์ Google Sheet ของแคมเพจ์น</label><input type="text" id="cam-url" class="form-control" placeholder="วาง URL ของ Spreadsheet แคมเพจ์น"></div>
+        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">เพิ่มแคมเปญ</h2>
+        <div class="form-group"><label>ชื่อแคมเปญ</label><input type="text" id="cam-name" class="form-control" placeholder="เช่น ส่วนลดน้ำมันเครื่อง Z7"></div>
+        <div class="form-group"><label>ลิงก์ Google Sheet ของแคมเปญ</label><input type="text" id="cam-url" class="form-control" placeholder="วาง URL ของ Spreadsheet แคมเปญ"></div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+            <div class="form-group"><label>เป้าหมาย (รถ/คัน)</label><input type="number" id="cam-target" class="form-control" value="100"></div>
+            <div class="form-group"><label>ราคาแพ็กเกจ (บาท/คัน)</label><input type="number" id="cam-base-price" class="form-control" placeholder="ใส่ 0 ถ้าไม่มีขั้นต่ำ" value="0"></div>
+        </div>
+        
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
             <div class="form-group"><label>วันที่เริ่ม</label><input type="date" id="cam-start" class="form-control"></div>
             <div class="form-group"><label>วันที่สิ้นสุด</label><input type="date" id="cam-end" class="form-control"></div>
         </div>
-        <div class="form-group" style="margin-top: 15px;"><label>เป้าหมาย (จำนวนรถ/คัน)</label><input type="number" id="cam-target" class="form-control" value="100"></div>
-        <button class="btn-submit" onclick="saveNewCampaign()">💾 บันทึกแคมเพจ์น</button>
+        
+        <button class="btn-submit" onclick="saveNewCampaign()">💾 บันทึกแคมเปญ</button>
     </div>
 </div>
 
@@ -350,18 +356,29 @@
         <span class="close-modal" onclick="closeCampaignDetailModal()">&times;</span>
         <div id="campaignDetailHeader"></div>
         
-        <div class="filter-container" style="margin-top: 15px;">
-            <select id="detailAdvisorFilter" class="form-control" style="width: auto;" onchange="renderCampaignDetailTable()">
-                <option value="all">👥 ทุกที่ปรึกษา</option>
-                <option value="กรรณิกา">กรรณิกา</option>
-                <option value="เรืองศิริ">เรืองศิริ</option>
-                <option value="เอกชัย เกษรบัว">เอกชัย เกษรบัว</option>
-                <option value="พรเทพ ม่วงรัก">พรเทพ ม่วงรัก</option>
-            </select>
-            <select id="detailSortOrder" class="form-control" style="width: auto;" onchange="renderCampaignDetailTable()">
-                <option value="desc">💰 ค่าใช้จ่าย: มาก -> น้อย</option>
-                <option value="asc">💰 ค่าใช้จ่าย: น้อย -> มาก</option>
-            </select>
+        <div class="filter-container" style="margin-top: 15px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <span style="font-weight: bold; font-size: 0.9em; color: var(--text-muted);">ตัวกรอง:</span>
+                
+                <select id="detailAdvisorFilter" class="form-control" style="width: auto;" onchange="renderCampaignDetailTable()">
+                    <option value="all">👥 ทุกที่ปรึกษา</option>
+                    <option value="เอกชัย เกษรบัว">เอกชัย เกษรบัว</option>
+                    <option value="พรเทพ ม่วงรัก">พรเทพ ม่วงรัก</option>
+                </select>
+
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="date" id="detailStartDate" class="form-control" style="width: auto; padding: 6px;" onchange="renderCampaignDetailTable()">
+                    <span style="color: var(--text-muted);">-</span>
+                    <input type="date" id="detailEndDate" class="form-control" style="width: auto; padding: 6px;" onchange="renderCampaignDetailTable()">
+                </div>
+
+                <select id="detailSortOrder" class="form-control" style="width: auto; margin-left: auto;" onchange="renderCampaignDetailTable()">
+                    <option value="desc">💰 ค่าใช้จ่าย: มาก -> น้อย</option>
+                    <option value="asc">💰 ค่าใช้จ่าย: น้อย -> มาก</option>
+                </select>
+                
+                <button class="btn-action" onclick="resetCampaignFilter()" style="color: #b91c1c; border-color: #fca5a5; background: #fee2e2;">ล้างตัวกรอง</button>
+            </div>
         </div>
 
         <div style="overflow: auto; flex: 1; margin-top: 15px;">
