@@ -145,7 +145,7 @@ function renderCampaignCards() {
         const endDate = new Date(cam.end);
         const isRunning = today <= endDate;
         const statusClass = isRunning ? 'status-running' : 'status-ended';
-        const statusText = isRunning ? '🟢 กำลังดำเนินการ' : '⚪ จบแคมเปญแล้ว';
+        const statusText = isRunning ? '🟢 กำลังดำเนินการ' : '⚪ จบแคมเพจ์นแล้ว';
         
         // ปุ่มลบแคมเปญจะโชว์ตอนปิดโหมดผู้บริหาร
         let editTools = '';
