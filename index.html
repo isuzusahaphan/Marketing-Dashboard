@@ -50,7 +50,6 @@
                 <span id="tar-Facebook">เป้าหมาย: 0</span>
             </div>
         </div>
-        
         <div class="target-card" style="border-color: var(--color-tk);" onclick="window.open('https://www.tiktok.com/@isuzu_shp', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-tk);">TikTok</span>
@@ -64,7 +63,6 @@
                 <span id="tar-TikTok">เป้าหมาย: 0</span>
             </div>
         </div>
-        
         <div class="target-card" style="border-color: var(--color-yt);" onclick="window.open('https://www.youtube.com/@%E0%B8%AD%E0%B8%B5%E0%B8%8B%E0%B8%B9%E0%B8%8B%E0%B8%B8%E0%B8%AA%E0%B8%AB%E0%B8%B0%E0%B8%A0%E0%B8%B1%E0%B8%93%E0%B8%91%E0%B9%8C', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-yt);">YouTube</span>
@@ -78,7 +76,6 @@
                 <span id="tar-YouTube">เป้าหมาย: 0</span>
             </div>
         </div>
-        
         <div class="target-card" style="border-color: var(--color-line);" onclick="window.open('https://lin.ee/VrAaVTj', '_blank')">
             <div class="target-header">
                 <span style="color: var(--color-line);">Line OA</span>
@@ -94,24 +91,30 @@
         </div>
     </div>
 
+    <div class="campaign-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0; font-size: 1.2em; color: var(--text-main);"><i class="fas fa-gift" style="color: var(--isuzu-red);"></i> แคมเปญพิเศษรายไตรมาส</h2>
+            <button id="btnAddCampaign" class="btn-action" style="background: var(--primary); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; display: none; align-items: center; justify-content: center;" onclick="openAddCampaignModal()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+        <div id="campaignCardsContainer" class="campaign-grid"></div>
+    </div>
+
     <div id="mainContentGrid" class="main-grid executive-mode">
-        
         <div class="card" style="display: flex; flex-direction: column;">
             <div class="card-title" style="margin-bottom: 15px;">จำนวนชิ้นงานแต่ละเดือน (ปี 2026)</div>
-            
             <div style="margin-bottom: 20px; background: #f8fafc; padding: 12px 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
                     <span style="font-size: 0.9em; font-weight: bold; color: var(--text-main);" id="monthlyStatusText">โหลดข้อมูล...</span>
                     <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);" id="monthlyCountText">0 งาน</span>
                 </div>
-                
                 <div class="monthly-progress-container">
                     <div id="monthlyProgressBar" class="monthly-progress-bar" style="width: 0%;">
                         <img id="monthlyMascot" class="mascot-leader" src="" alt="mascot">
                     </div>
                 </div>
             </div>
-
             <div style="position: relative; height: 250px; width: 100%;">
                 <canvas id="monthlyChart"></canvas>
             </div>
@@ -119,18 +122,9 @@
 
         <div id="formCard" class="card">
             <div class="card-title">บันทึกงานใหม่</div>
-            
             <div class="form-grid">
-                <div class="form-group">
-                    <label>วันที่โพสต์</label>
-                    <input type="date" id="jobDate" class="form-control">
-                </div>
-                
-                <div class="form-group">
-                    <label>ชื่อชิ้นงาน / หัวข้อ</label>
-                    <input type="text" id="jobTitle" class="form-control" placeholder="เช่น ส่งมอบรถใหม่ คุณ A...">
-                </div>
-                
+                <div class="form-group"><label>วันที่โพสต์</label><input type="date" id="jobDate" class="form-control"></div>
+                <div class="form-group"><label>ชื่อชิ้นงาน / หัวข้อ</label><input type="text" id="jobTitle" class="form-control" placeholder="เช่น ส่งมอบรถใหม่ คุณ A..."></div>
                 <div class="form-group">
                     <label>ประเภทงาน</label>
                     <select id="jobType" class="form-control">
@@ -147,7 +141,6 @@
                         <option value="แต่ละวันสหะภัณฑ์">แต่ละวันสหะภัณฑ์</option>
                     </select>
                 </div>
-                
                 <div class="form-group">
                     <label>รูปแบบ</label>
                     <select id="jobFormat" class="form-control">
@@ -156,7 +149,6 @@
                     </select>
                 </div>
             </div>
-            
             <div class="form-group" style="margin-bottom: 10px; margin-top: 15px;">
                 <label>ช่องทางที่โพสต์</label>
                 <div class="checkbox-group">
@@ -166,9 +158,7 @@
                     <label class="checkbox-label"><input type="checkbox" id="chk-line" value="Line OA" onchange="toggleLinkInputs()"> Line OA</label>
                 </div>
             </div>
-            
             <div id="linkInputsContainer" class="link-inputs-container"></div>
-            
             <button id="btnSaveMain" class="btn-submit" style="margin-top: 20px;" onclick="saveJob()">บันทึกข้อมูล</button>
         </div>
     </div>
@@ -221,13 +211,10 @@
                             <label class="filter-chk-label"><input type="checkbox" class="filter-type" value="แต่ละวันสหะภัณฑ์" onchange="applyFilters()"> แต่ละวันสหะภัณฑ์</label>
                         </div>
                     </div>
-                    
                     <button class="btn-action" onclick="resetFilters()" style="color: #b91c1c; border-color: #fca5a5; background: #fee2e2;">🔄 ล้างตัวกรอง</button>
                     <button class="btn-action" style="margin-left: auto;" onclick="openAllContentModal()">ดูทั้งหมด</button>
                 </div>
-                
                 <div id="activeFiltersArea" class="filter-tag-area"></div>
-                
             </div>
         </div>
         
@@ -253,7 +240,7 @@
 <div id="targetModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeTargetModal()">&times;</span>
-        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">🎯 ตั้งค่าเป้าหมาย</h2>
+        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">🎯 ตั้งค่าเป้าหมายผู้ติดตาม</h2>
         <div id="targetInputsArea"></div>
         <button id="btnSaveTargets" class="btn-submit" onclick="saveTargets()">💾 บันทึกเป้าหมาย</button>
     </div>
@@ -269,24 +256,18 @@
         <div class="form-group">
             <label>ประเภทงาน</label>
             <select id="editJobType" class="form-control">
-                <option value="ส่งมอบรถใหม่">ส่งมอบรถใหม่</option>
-                <option value="คู่บื้อ">คู่บื้อ</option>
-                <option value="ไปกับสหะภัณฑ์">ไปกับสหะภัณฑ์</option>
-                <option value="โหนกระบะ">โหนกระบะ</option>
-                <option value="บรรทุกมุก">บรรทุกมุก</option>
-                <option value="EVENT / เทศกาล">EVENT / เทศกาล</option>
-                <option value="วันหยุด">วันหยุด</option>
-                <option value="ตรีเพชร">ตรีเพชร</option>
-                <option value="โปรศูนย์บริการ">โปรศูนย์บริการ</option>
-                <option value="โปรฝ่ายขาย">โปรฝ่ายขาย</option>
+                <option value="ส่งมอบรถใหม่">ส่งมอบรถใหม่</option><option value="คู่บื้อ">คู่บื้อ</option>
+                <option value="ไปกับสหะภัณฑ์">ไปกับสหะภัณฑ์</option><option value="โหนกระบะ">โหนกระบะ</option>
+                <option value="บรรทุกมุก">บรรทุกมุก</option><option value="EVENT / เทศกาล">EVENT / เทศกาล</option>
+                <option value="วันหยุด">วันหยุด</option><option value="ตรีเพชร">ตรีเพชร</option>
+                <option value="โปรศูนย์บริการ">โปรศูนย์บริการ</option><option value="โปรฝ่ายขาย">โปรฝ่ายขาย</option>
                 <option value="แต่ละวันสหะภัณฑ์">แต่ละวันสหะภัณฑ์</option>
             </select>
         </div>
         <div class="form-group">
             <label>รูปแบบ</label>
             <select id="editJobFormat" class="form-control">
-                <option value="Videos">🎬 Videos</option>
-                <option value="Pictures">🖼️ Pictures</option>
+                <option value="Videos">🎬 Videos</option><option value="Pictures">🖼️ Pictures</option>
             </select>
         </div>
         <div class="form-group">
@@ -334,13 +315,8 @@
             <table class="premium-table" style="margin-top: 0;">
                 <thead>
                     <tr>
-                        <th>วันที่</th>
-                        <th>หัวข้อ / ประเภท</th>
-                        <th>รูปแบบ</th>
-                        <th>ช่องทาง</th>
-                        <th>พรีวิว / ลิงก์</th>
-                        <th>ยอดวิวรวม</th>
-                        <th>จัดการ</th>
+                        <th>วันที่</th><th>หัวข้อ / ประเภท</th><th>รูปแบบ</th><th>ช่องทาง</th>
+                        <th>พรีวิว / ลิงก์</th><th>ยอดวิวรวม</th><th>จัดการ</th>
                     </tr>
                 </thead>
                 <tbody id="allTableBody"></tbody>
@@ -351,6 +327,58 @@
             <span id="pageIndicator" style="font-weight: bold; font-size: 0.9em;">หน้า 1</span>
             <button id="btnNextPage" onclick="changePage(1)">ถัดไป ▶</button>
         </div>
+    </div>
+</div>
+
+<div id="addCampaignModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeAddCampaignModal()">&times;</span>
+        <h2 style="color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px;">🎁 เพิ่มแคมเปญใหม่</h2>
+        <div class="form-group"><label>ชื่อแคมเปญ</label><input type="text" id="cam-name" class="form-control" placeholder="เช่น ส่วนลดน้ำมันเครื่อง Z7"></div>
+        <div class="form-group"><label>ลิงก์ Google Sheet ของแคมเปญ</label><input type="text" id="cam-url" class="form-control" placeholder="วาง URL ของ Spreadsheet แคมเปญ"></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+            <div class="form-group"><label>วันที่เริ่ม</label><input type="date" id="cam-start" class="form-control"></div>
+            <div class="form-group"><label>วันที่สิ้นสุด</label><input type="date" id="cam-end" class="form-control"></div>
+        </div>
+        <div class="form-group" style="margin-top: 15px;"><label>เป้าหมาย (จำนวนรถ/คัน)</label><input type="number" id="cam-target" class="form-control" value="100"></div>
+        <button class="btn-submit" onclick="saveNewCampaign()">💾 บันทึกแคมเปญ</button>
+    </div>
+</div>
+
+<div id="campaignDetailModal" class="modal">
+    <div class="modal-content large" style="height: 85vh; display: flex; flex-direction: column;">
+        <span class="close-modal" onclick="closeCampaignDetailModal()">&times;</span>
+        <div id="campaignDetailHeader"></div>
+        
+        <div class="filter-container" style="margin-top: 15px;">
+            <select id="detailAdvisorFilter" class="form-control" style="width: auto;" onchange="renderCampaignDetailTable()">
+                <option value="all">👥 ทุกที่ปรึกษา</option>
+                <option value="กรรณิกา">กรรณิกา</option>
+                <option value="เรืองศิริ">เรืองศิริ</option>
+                <option value="เอกชัย เกษรบัว">เอกชัย เกษรบัว</option>
+                <option value="พรเทพ ม่วงรัก">พรเทพ ม่วงรัก</option>
+            </select>
+            <select id="detailSortOrder" class="form-control" style="width: auto;" onchange="renderCampaignDetailTable()">
+                <option value="desc">💰 ค่าใช้จ่าย: มาก -> น้อย</option>
+                <option value="asc">💰 ค่าใช้จ่าย: น้อย -> มาก</option>
+            </select>
+        </div>
+
+        <div style="overflow: auto; flex: 1; margin-top: 15px;">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>วันที่</th>
+                        <th>เลขที่ใบสั่งซ่อม</th>
+                        <th>ที่ปรึกษา</th>
+                        <th>ค่าใช้จ่าย</th>
+                        <th>หลักฐาน</th>
+                    </tr>
+                </thead>
+                <tbody id="campaignDetailTableBody"></tbody>
+            </table>
+        </div>
+        <div id="campaignPagination" class="pagination"></div>
     </div>
 </div>
 
