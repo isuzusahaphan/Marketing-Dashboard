@@ -146,7 +146,7 @@ function renderCampaignCards() {
         const endDate = new Date(cam.end);
         const isRunning = today <= endDate;
         const statusClass = isRunning ? 'status-running' : 'status-ended';
-        const statusText = isRunning ? '🟢 กำลังดำเนินการ' : '⚪ จบแคมเปญแล้ว';
+        const statusText = isRunning ? '🟢 กำลังดำเนินการ' : '🔴 จบแคมเปญแล้ว';
         
         let editTools = '';
         if (!isExecutiveMode) {
@@ -251,7 +251,7 @@ function renderCampaignDetailTable() {
     const totalRevenue = filtered.reduce((sum, d) => sum + d.cost, 0); 
     const upsellRevenue = totalRevenue - baseRevenue; 
 
-    // วาดส่วนหัวสถิติ และกล่อง TIPS
+    // วาดส่วนหัวสถิติ และกล่อง TIPS แบบที่คุณรณกฤตชอบ (แบบสมการ)
     document.getElementById('campaignDetailHeader').innerHTML = `
         <h2 style="color: var(--isuzu-red); margin:0;"><i class="fas fa-gift"></i> ${currentDetailCampaign.name}</h2>
         
@@ -275,8 +275,8 @@ function renderCampaignDetailTable() {
         </div>
         
         <div class="info-tips-box">
-            <i class="fas fa-lightbulb" style="color: #f59e0b;"></i> <b>UX TIPS:</b> 
-            รายได้พื้นฐานคำนวณจากราคาแพ็กเกจเริ่มต้นที่ตั้งไว้ | ยอดขายเพิ่ม (Upsell) คือส่วนต่างที่ SA ขายงานเพิ่มได้จากแพ็กเกจปกติ
+            <i class="fas fa-info-circle" style="color: var(--primary);"></i> <b>TIPS การคำนวณ:</b> 
+            รายได้พื้นฐาน = จำนวนรถ x ${basePrice > 0 ? `ราคาแพ็กเกจ (฿${basePrice.toLocaleString()})` : 'ราคาเริ่มต้น'}  |  ยอดขายเพิ่ม (Upsell) = รายได้รวมทั้งหมด - รายได้พื้นฐาน
         </div>
     `;
 
