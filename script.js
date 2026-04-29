@@ -461,8 +461,8 @@ function updateMonthlyStatus() {
         statusText = `ทรงอย่างแบด มาตรฐานเป๊ะ 🤙 (เป้าต่อไป 50)`; 
         barBgGradient = "linear-gradient(90deg, #3b82f6, #93c5fd, #3b82f6)"; 
         celebratedMonthly = false; 
-    } else if (currentMonthCount < 80) { 
-        statusText = `ปั่นยับๆ เอาเรื่องจัด 🔥 (เป้าสูงสุด 80)`; 
+    } else if (currentMonthCount < 75) { 
+        statusText = `ปั่นยับๆ เอาเรื่องจัด 🔥 (เป้าสูงสุด 75)`; 
         barBgGradient = "linear-gradient(90deg, #f59e0b, #fcd34d, #f59e0b)"; 
         celebratedMonthly = false; 
     } else {
@@ -474,7 +474,7 @@ function updateMonthlyStatus() {
         }
     }
     
-    let pct = (currentMonthCount / 80) * 100; 
+    let pct = (currentMonthCount / 75) * 100; 
     if (pct > 100) {
         pct = 100;
     }
