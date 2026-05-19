@@ -3,6 +3,7 @@ const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyw4b4F0iGNWu2
 
 Chart.register(ChartDataLabels);
 let monthlyChartInstance = null;
+let trendChartInstance = null; // 🌟 ตัวแปรสำหรับกราฟเส้นแนวโน้ม
 
 const platformColors = { 
     'Facebook': '#1877F2', 
@@ -11,7 +12,6 @@ const platformColors = {
     'Line OA': '#00C300' 
 };
 
-// 🌟 แก้ไข: เติมเครื่องหมาย ' ตรงอู่สี และลบทุบโต๊ะกับข่าวที่ซ้ำออกแล้ว
 const typeColors = {
     'ส่งมอบรถใหม่': '#10b981', 
     'คู่บื้อ': '#8b5cf6', 
@@ -49,7 +49,7 @@ let isExecutiveMode = true;
 
 // ตัวแปร Detail แคมเปญ
 let currentDetailCampaign = null;
-let currentEditCampaignId = null; // 🌟 เก็บ ID แคมเปญที่กำลังกดแก้ไข
+let currentEditCampaignId = null; 
 let detailPage = 1;
 
 const mascots = ['ISZ-Mascot-Master.png']; 
@@ -107,26 +107,19 @@ function toggleMode() {
     const grid = document.getElementById('mainContentGrid');
     const btn = document.getElementById('modeToggleBtn');
     const btnSetTarget = document.getElementById('btnSetTarget');
-    const btnAddCam = document.getElementById('btnAddCampaign'); 
 
     if (isExecutiveMode) {
         grid.classList.add('executive-mode');
         btn.innerHTML = '👨‍💼 โหมดผู้บริหาร'; 
         btn.style.background = '#10b981'; 
         btnSetTarget.disabled = true;
-        if(btnAddCam) { 
-            btnAddCam.style.display = 'none'; 
-        }
     } else {
         grid.classList.remove('executive-mode');
         btn.innerHTML = '📝 โหมดบันทึกงาน'; 
         btn.style.background = '#f59e0b'; 
         btnSetTarget.disabled = false;
-        if(btnAddCam) { 
-            btnAddCam.style.display = 'flex'; 
-        }
     }
-    renderCampaignCards();
+    renderCampaignCards(); // เรียกใหม่เพื่อให้การ์ดเพิ่มแคมเปญแสดงหรือซ่อน
     applyFilters();
     setTimeout(() => { 
         if (monthlyChartInstance) {
@@ -135,71 +128,143 @@ function toggleMode() {
     }, 350);
 }
 
-// 🌟 แคมเปญ: วาดการ์ด
+// 🌟 แคมเปญ: วาดการ์ด (อัปเดตใหม่ ให้มีปุ่มเพิ่มแคมเปญเป็นการ์ดใบแรก)
 function renderCampaignCards() {
     const container = document.getElementById('campaignCardsContainer');
-    
-    if (!campaignData || campaignData.length === 0) {
-        container.innerHTML = '<p style="color:#999; text-align:center; width:100%; padding:20px; background:white; border-radius:8px; border:1px dashed #ccc;">ยังไม่มีข้อมูลแคมเปญพิเศษ</p>';
-        return;
-    }
+    let htmlContent = '';
 
-    container.innerHTML = campaignData.map(cam => {
-        const pct = cam.target > 0 ? Math.round((cam.actual / cam.target) * 100) : 0;
-        const today = new Date(); 
-        const endDate = new Date(cam.end);
-        const isRunning = today <= endDate;
-        const statusClass = isRunning ? 'status-running' : 'status-ended';
-        const statusText = isRunning ? '🟢 กำลังดำเนินการ' : '🔴 จบแคมเปญแล้ว';
-        
-        let editTools = '';
-        if (!isExecutiveMode) {
-            editTools = `
-                <div class="cam-edit-tools">
-                    <button class="btn-action" style="padding:4px 8px; border-color:#9ca3af; color:#475569;" onclick="event.stopPropagation(); openEditCampaignModal(${cam.id})" title="แก้ไขข้อมูลแคมเปญ"><i class="fas fa-edit"></i></button>
-                    <button class="btn-action" style="padding:4px 8px; border-color:#fca5a5; color:#b91c1c; background:#fee2e2;" onclick="event.stopPropagation(); deleteCampaign(${cam.id})" title="ลบแคมเปญถาวร"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
-        }
-
-        return `
-            <div class="cam-card" onclick="openCampaignDetail(${cam.id})">
-                <span class="cam-badge ${statusClass}">${statusText}</span>
-                <h3 style="margin-bottom:15px; font-size:1.05em; padding-right:80px; color:#1f2937;">${cam.name}</h3>
-                <div style="display:flex; justify-content:space-between; font-size:0.85em; margin-bottom:5px;">
-                    <span style="color:var(--text-muted);">ความคืบหน้า (รถเข้ารับบริการ)</span>
-                    <b style="color:var(--primary);">${pct}%</b>
-                </div>
-                <div class="progress-container" style="height:10px; margin-bottom:15px;">
-                    <div class="progress-bar" style="width:${pct > 100 ? 100 : pct}%; background:linear-gradient(90deg, #f87171, #b91c1c);"></div>
-                </div>
-                <div style="display:flex; justify-content:space-between; font-size:0.85em;">
-                    <span>📍 ทำได้: <b style="color:var(--text-main);">${cam.actual}</b> / ${cam.target} คัน</span>
-                    <span style="color:var(--text-muted);"><i class="far fa-calendar-alt"></i> ถึง ${new Date(cam.end).toLocaleDateString('th-TH')}</span>
-                </div>
-                ${editTools}
+    // ถ้าเป็นโหมดบันทึกงาน ให้แสดงการ์ด "เพิ่มแคมเปญใหม่" เป็นใบแรก
+    if (!isExecutiveMode) {
+        htmlContent += `
+            <div class="cam-card add-cam-card" onclick="openAddCampaignModal()">
+                <i class="fas fa-plus-circle" style="color: var(--primary);"></i>
+                <b style="font-size:1.1em; color: var(--primary);">เพิ่มแคมเปญใหม่</b>
             </div>
         `;
-    }).join('');
+    }
+
+    if (!campaignData || campaignData.length === 0) {
+        if (isExecutiveMode) {
+            htmlContent += '<p style="color:#999; text-align:center; width:100%; padding:20px; background:white; border-radius:8px; border:1px dashed #ccc;">ยังไม่มีข้อมูลแคมเปญพิเศษ</p>';
+        }
+    } else {
+        htmlContent += campaignData.map(cam => {
+            const pct = cam.target > 0 ? Math.round((cam.actual / cam.target) * 100) : 0;
+            const today = new Date(); 
+            const endDate = new Date(cam.end);
+            const isRunning = today <= endDate;
+            const statusClass = isRunning ? 'status-running' : 'status-ended';
+            const statusText = isRunning ? '🟢 กำลังดำเนินการ' : '🔴 จบแคมเปญแล้ว';
+            
+            let editTools = '';
+            if (!isExecutiveMode) {
+                editTools = `
+                    <div class="cam-edit-tools">
+                        <button class="btn-action" style="padding:4px 8px; border-color:#9ca3af; color:#475569;" onclick="event.stopPropagation(); openEditCampaignModal(${cam.id})" title="แก้ไขข้อมูลแคมเปญ"><i class="fas fa-edit"></i></button>
+                        <button class="btn-action" style="padding:4px 8px; border-color:#fca5a5; color:#b91c1c; background:#fee2e2;" onclick="event.stopPropagation(); deleteCampaign(${cam.id})" title="ลบแคมเปญถาวร"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="cam-card" onclick="openCampaignDetail(${cam.id})">
+                    <span class="cam-badge ${statusClass}">${statusText}</span>
+                    <h3 style="margin-bottom:15px; font-size:1.05em; padding-right:80px; color:#1f2937;">🎁 ${cam.name}</h3>
+                    <div style="display:flex; justify-content:space-between; font-size:0.85em; margin-bottom:5px;">
+                        <span style="color:var(--text-muted);">ความคืบหน้า (รถเข้ารับบริการ)</span>
+                        <b style="color:var(--primary);">${pct}%</b>
+                    </div>
+                    <div class="progress-container" style="height:10px; margin-bottom:15px;">
+                        <div class="progress-bar" style="width:${pct > 100 ? 100 : pct}%; background:linear-gradient(90deg, #f87171, #b91c1c);"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.85em;">
+                        <span>📍 ทำได้: <b style="color:var(--text-main);">${cam.actual}</b> / ${cam.target} คัน</span>
+                        <span style="color:var(--text-muted);"><i class="far fa-calendar-alt"></i> ถึง ${new Date(cam.end).toLocaleDateString('th-TH')}</span>
+                    </div>
+                    ${editTools}
+                </div>
+            `;
+        }).join('');
+    }
+
+    container.innerHTML = htmlContent;
 }
 
-// 🌟 แคมเปญ: เปิดรายละเอียดเชิงลึก
+// 🌟 ฟังก์ชันวาดกราฟเส้น (Pop-up แนวโน้มยอดวิว) 🌟
+function openTrendModal(platform) {
+    document.getElementById('trendModalTitle').innerHTML = `📈 สถิติยอดวิวรายเดือน: <span style="color:${platformColors[platform]}">${platform}</span>`;
+    
+    let monthlyViews = new Array(12).fill(0);
+    
+    // คำนวณยอดวิวสะสมแยกตามเดือน (อิงจากประวัติการลงงานทั้งหมด)
+    marketingData.forEach(job => {
+        const d = new Date(job.date);
+        const m = d.getMonth();
+        if (!isNaN(m)) {
+            const pData = job.platforms.find(p => p.name === platform);
+            if (pData) {
+                monthlyViews[m] += (parseInt(pData.views) || 0);
+            }
+        }
+    });
+
+    document.getElementById('trendModal').style.display = 'flex';
+
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    if (trendChartInstance) {
+        trendChartInstance.destroy(); // เคลียร์กราฟเก่าก่อนวาดใหม่
+    }
+
+    trendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],
+            datasets: [{
+                label: `ยอดวิว ${platform}`,
+                data: monthlyViews,
+                borderColor: platformColors[platform] || '#4f46e5',
+                backgroundColor: (platformColors[platform] || '#4f46e5') + '22', // สีโปร่งใส 22 (Hex)
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3, // ทำเส้นให้โค้งมนนิดๆ
+                pointBackgroundColor: platformColors[platform] || '#4f46e5',
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    align: 'top',
+                    color: platformColors[platform] || '#4f46e5',
+                    font: { weight: 'bold', size: 10 },
+                    formatter: function(value) { return value > 0 ? value.toLocaleString() : ''; }
+                }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+function closeTrendModal() {
+    document.getElementById('trendModal').style.display = 'none';
+}
+
 function openCampaignDetail(camId) {
     currentDetailCampaign = campaignData.find(c => c.id === camId);
     if (!currentDetailCampaign) return;
-    
     detailPage = 1;
-    
-    // ตั้งค่าเริ่มต้น: เรียงตามวันที่เก่า -> ใหม่ และรีเซ็ตตัวกรอง SA
     document.getElementById('detailAdvisorFilter').value = 'all';
     document.getElementById('detailSortOrder').value = 'date_asc';
-    
-    // ตั้งค่าช่วงวันที่ให้ตรงกับระยะเวลาแคมเปญ
     let sDate = currentDetailCampaign.start.split('T')[0]; 
     let eDate = currentDetailCampaign.end.split('T')[0];
     document.getElementById('detailStartDate').value = sDate;
     document.getElementById('detailEndDate').value = eDate;
-
     renderCampaignDetailTable();
     document.getElementById('campaignDetailModal').style.display = 'flex';
 }
@@ -212,7 +277,6 @@ function resetCampaignFilter() {
     renderCampaignDetailTable();
 }
 
-// 🌟 แคมเปญ: วาดตารางและคำนวณยอด Upsell
 function renderCampaignDetailTable() {
     const advisorFilter = document.getElementById('detailAdvisorFilter').value;
     const sortOrder = document.getElementById('detailSortOrder').value;
@@ -220,71 +284,39 @@ function renderCampaignDetailTable() {
     const endDateStr = document.getElementById('detailEndDate').value;
     
     let filtered = [...currentDetailCampaign.data];
-
-    // 1. กรองด้วยที่ปรึกษา (SA)
-    if(advisorFilter !== 'all') {
-        filtered = filtered.filter(d => d.advisor.includes(advisorFilter));
-    }
+    if(advisorFilter !== 'all') filtered = filtered.filter(d => d.advisor.includes(advisorFilter));
     
-    // 2. กรองด้วยช่วงวันที่
     if (startDateStr && endDateStr) {
         const sTime = new Date(startDateStr).getTime();
         const eTime = new Date(endDateStr).getTime() + (24 * 60 * 60 * 1000) - 1; 
-
         filtered = filtered.filter(d => {
             const rowTime = new Date(d.date).getTime();
             return rowTime >= sTime && rowTime <= eTime;
         });
     }
     
-    // 3. เรียงลำดับข้อมูล
-    if (sortOrder === 'date_asc') {
-        filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
-    } else if (sortOrder === 'date_desc') {
-        filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-    } else if (sortOrder === 'desc') {
-        filtered.sort((a, b) => b.cost - a.cost);
-    } else {
-        filtered.sort((a, b) => a.cost - b.cost);
-    }
+    if (sortOrder === 'date_asc') filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+    else if (sortOrder === 'date_desc') filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    else if (sortOrder === 'desc') filtered.sort((a, b) => b.cost - a.cost);
+    else filtered.sort((a, b) => a.cost - b.cost);
 
-    // --- 🧮 การคำนวณยอดเงิน (Upsell) 🧮 ---
     const totalCars = filtered.length;
     const basePrice = parseInt(currentDetailCampaign.basePrice) || 0;
     const baseRevenue = totalCars * basePrice; 
     const totalRevenue = filtered.reduce((sum, d) => sum + d.cost, 0); 
     const upsellRevenue = totalRevenue - baseRevenue; 
 
-    // วาดส่วนหัวสถิติ และกล่อง TIPS แบบที่คุณรณกฤตชอบ (แบบสมการ)
     document.getElementById('campaignDetailHeader').innerHTML = `
         <h2 style="color: var(--isuzu-red); margin:0;"><i class="fas fa-gift"></i> ${currentDetailCampaign.name}</h2>
-        
         <div style="margin-top:15px; display:flex; gap:12px; flex-wrap:wrap;">
-            <div class="stat-badge bg-blue">
-                <span class="stat-title">จำนวนรถที่เข้า</span>
-                <span class="stat-value">${totalCars} <span style="font-size:0.6em;">คัน</span></span>
-            </div>
-            <div class="stat-badge bg-gray" title="คำนวณจาก: จำนวนรถ x ฿${basePrice.toLocaleString()}">
-                <span class="stat-title">รายได้พื้นฐาน (Base)</span>
-                <span class="stat-value">฿ ${baseRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-            </div>
-            <div class="stat-badge bg-green">
-                <span class="stat-title">รายได้รวมทั้งหมด (Total)</span>
-                <span class="stat-value">฿ ${totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-            </div>
-            <div class="stat-badge ${upsellRevenue >= 0 ? 'bg-orange' : 'bg-red'}">
-                <span class="stat-title">ยอดขายเพิ่ม (Upsell)</span>
-                <span class="stat-value">${upsellRevenue > 0 ? '+' : ''} ฿ ${upsellRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-            </div>
+            <div class="stat-badge bg-blue"><span class="stat-title">จำนวนรถที่เข้า</span><span class="stat-value">${totalCars} <span style="font-size:0.6em;">คัน</span></span></div>
+            <div class="stat-badge bg-gray" title="คำนวณจาก: จำนวนรถ x ฿${basePrice.toLocaleString()}"><span class="stat-title">รายได้พื้นฐาน (Base)</span><span class="stat-value">฿ ${baseRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
+            <div class="stat-badge bg-green"><span class="stat-title">รายได้รวมทั้งหมด (Total)</span><span class="stat-value">฿ ${totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
+            <div class="stat-badge ${upsellRevenue >= 0 ? 'bg-orange' : 'bg-red'}"><span class="stat-title">ยอดขายเพิ่ม (Upsell)</span><span class="stat-value">${upsellRevenue > 0 ? '+' : ''} ฿ ${upsellRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
         </div>
-        
-        <div class="info-tips-box">
-            <i class="fas fa-info-circle" style="color: var(--primary);"></i> <b>TIPS การคำนวณ:</b> 
-            รายได้พื้นฐาน = จำนวนรถ x ${basePrice > 0 ? `ราคาแพ็กเกจ (฿${basePrice.toLocaleString()})` : 'ราคาเริ่มต้น'}  |  ยอดขายเพิ่ม (Upsell) = รายได้รวมทั้งหมด - รายได้พื้นฐาน
-        </div>
+        <div class="info-tips-box"><i class="fas fa-info-circle" style="color: var(--primary);"></i> <b>TIPS การคำนวณ:</b> รายได้พื้นฐาน = จำนวนรถ x ${basePrice > 0 ? `ราคาแพ็กเกจ (฿${basePrice.toLocaleString()})` : 'ราคาเริ่มต้น'}  |  ยอดขายเพิ่ม (Upsell) = รายได้รวมทั้งหมด - รายได้พื้นฐาน</div>
     `;
 
-    // --- วาดตารางและ Pagination ---
     const totalPages = Math.ceil(totalCars / itemsPerPage) || 1;
     const start = (detailPage - 1) * itemsPerPage;
     const pageData = filtered.slice(start, start + itemsPerPage);
@@ -314,10 +346,7 @@ function renderCampaignDetailTable() {
         `;
     }).join('');
 
-    if (!tableHtml) {
-        tableHtml = '<tr><td colspan="5" style="text-align:center; padding:30px;">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
-    }
-
+    if (!tableHtml) tableHtml = '<tr><td colspan="5" style="text-align:center; padding:30px;">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
     document.getElementById('campaignDetailTableBody').innerHTML = tableHtml;
 
     document.getElementById('campaignPagination').innerHTML = `
@@ -327,7 +356,6 @@ function renderCampaignDetailTable() {
     `;
 }
 
-// 🌟 แคมเปญ: เปิดหน้าต่างสร้างใหม่
 function openAddCampaignModal() { 
     currentEditCampaignId = null; 
     document.getElementById('cam-name').value = '';
@@ -336,16 +364,13 @@ function openAddCampaignModal() {
     document.getElementById('cam-end').value = '';
     document.getElementById('cam-target').value = '100';
     document.getElementById('cam-base-price').value = '0';
-    
     document.getElementById('addCampaignModal').querySelector('h2').innerHTML = '🎁 เพิ่มแคมเปญใหม่';
     document.getElementById('addCampaignModal').style.display = 'flex'; 
 }
 
-// 🌟 แคมเปญ: เปิดหน้าต่างแก้ไขข้อมูลเดิม
 function openEditCampaignModal(camId) {
     const cam = campaignData.find(c => c.id === camId);
     if (!cam) return;
-    
     currentEditCampaignId = camId;
     document.getElementById('cam-name').value = cam.name;
     document.getElementById('cam-url').value = cam.url;
@@ -353,20 +378,13 @@ function openEditCampaignModal(camId) {
     document.getElementById('cam-end').value = cam.end ? cam.end.split('T')[0] : '';
     document.getElementById('cam-target').value = cam.target;
     document.getElementById('cam-base-price').value = cam.basePrice || 0;
-    
     document.getElementById('addCampaignModal').querySelector('h2').innerHTML = '✏️ แก้ไขข้อมูลแคมเปญ';
     document.getElementById('addCampaignModal').style.display = 'flex'; 
 }
 
-function closeAddCampaignModal() { 
-    document.getElementById('addCampaignModal').style.display = 'none'; 
-}
+function closeAddCampaignModal() { document.getElementById('addCampaignModal').style.display = 'none'; }
+function closeCampaignDetailModal() { document.getElementById('campaignDetailModal').style.display = 'none'; }
 
-function closeCampaignDetailModal() { 
-    document.getElementById('campaignDetailModal').style.display = 'none'; 
-}
-
-// 🌟 แคมเปญ: บันทึกข้อมูล
 async function saveNewCampaign() {
     const name = document.getElementById('cam-name').value.trim();
     const url = document.getElementById('cam-url').value.trim();
@@ -375,113 +393,63 @@ async function saveNewCampaign() {
     const target = document.getElementById('cam-target').value;
     const basePrice = document.getElementById('cam-base-price').value || 0;
 
-    if(!name || !url || !start || !end) {
-        return Swal.fire({icon:'warning', text:'กรุณากรอกข้อมูลให้ครบถ้วน'});
-    }
+    if(!name || !url || !start || !end) return Swal.fire({icon:'warning', text:'กรุณากรอกข้อมูลให้ครบถ้วน'});
 
     const action = currentEditCampaignId ? 'editCampaign' : 'addCampaign';
     showLoading('กำลังบันทึกข้อมูลและวิเคราะห์ชีต...');
     
     try {
         await fetch(GOOGLE_SHEET_URL, {
-            method: 'POST', 
-            mode: 'no-cors', 
-            headers: {'Content-Type': 'text/plain;charset=utf-8'},
+            method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'},
             body: JSON.stringify({ action: action, id: currentEditCampaignId, name: name, url: url, start: start, end: end, targetCars: target, basePrice: basePrice })
         });
-        
-        Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'ข้อมูลแคมเปญถูกอัปเดตแล้ว', timer: 1500, showConfirmButton: false })
-            .then(() => location.reload());
-    } catch(e) { 
-        Swal.fire({icon:'error', text:'เกิดข้อผิดพลาดในการเชื่อมต่อ'}); 
-    }
+        Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'ข้อมูลแคมเปญถูกอัปเดตแล้ว', timer: 1500, showConfirmButton: false }).then(() => location.reload());
+    } catch(e) { Swal.fire({icon:'error', text:'เกิดข้อผิดพลาดในการเชื่อมต่อ'}); }
 }
 
-// 🌟 แคมเปญ: ลบถาวร (ยิงไปลบใน Sheet จริง)
 function deleteCampaign(id) {
     Swal.fire({
-        title: 'ลบแคมเปญถาวร?', 
-        text: "การตั้งค่าแคมเปญนี้จะถูกลบออกจากชีตหลักทันที", 
-        icon: 'warning',
-        showCancelButton: true, 
-        confirmButtonColor: '#d33', 
-        confirmButtonText: 'ลบเลย!'
+        title: 'ลบแคมเปญถาวร?', text: "การตั้งค่าแคมเปญนี้จะถูกลบออกจากชีตหลักทันที", icon: 'warning',
+        showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'ลบเลย!'
     }).then(async (result) => {
         if (result.isConfirmed) {
             showLoading('กำลังลบข้อมูลออกจากเซิร์ฟเวอร์...');
             try {
                 await fetch(GOOGLE_SHEET_URL, {
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'deleteCampaign', id: id })
                 });
-                
                 campaignData = campaignData.filter(c => c.id !== id);
                 renderCampaignCards();
                 Swal.fire({ icon: 'success', title: 'ลบเรียบร้อย', showConfirmButton: false, timer: 1500 });
-            } catch(e) { 
-                Swal.fire({icon:'error', text:'ลบไม่สำเร็จ กรุณาลองใหม่'}); 
-            }
+            } catch(e) { Swal.fire({icon:'error', text:'ลบไม่สำเร็จ กรุณาลองใหม่'}); }
         }
     });
 }
 
-// ==========================================
-// Marketing Functions
-// ==========================================
 function updateMonthlyStatus() {
     const filterVal = document.getElementById('monthFilter').value;
     let targetMonth = new Date().getMonth(); 
     let targetYear = new Date().getFullYear();
-    
-    if (filterVal !== 'all') { 
-        targetMonth = parseInt(filterVal); 
-    }
+    if (filterVal !== 'all') targetMonth = parseInt(filterVal); 
     
     let currentMonthCount = 0;
     marketingData.forEach(j => {
         const d = new Date(j.date);
-        if (filterVal === 'all') { 
-            if (d.getMonth() === targetMonth && d.getFullYear() === targetYear) {
-                currentMonthCount++; 
-            }
-        } else { 
-            if (d.getMonth() === targetMonth) {
-                currentMonthCount++; 
-            }
-        }
+        if (filterVal === 'all') { if (d.getMonth() === targetMonth && d.getFullYear() === targetYear) currentMonthCount++; }
+        else { if (d.getMonth() === targetMonth) currentMonthCount++; }
     });
 
-    let statusText = ""; 
-    let barBgGradient = "";
-    
-    if (currentMonthCount < 25) { 
-        statusText = `วอร์มนิ้วอยู่ฮะ 🥶 (เป้าแรก 25)`; 
-        barBgGradient = "linear-gradient(90deg, #9ca3af, #d1d5db, #9ca3af)"; 
-        celebratedMonthly = false; 
-    } else if (currentMonthCount < 50) { 
-        statusText = `ทรงอย่างแบด มาตรฐานเป๊ะ 🤙 (เป้าต่อไป 50)`; 
-        barBgGradient = "linear-gradient(90deg, #3b82f6, #93c5fd, #3b82f6)"; 
-        celebratedMonthly = false; 
-    } else if (currentMonthCount < 75) { 
-        statusText = `ปั่นยับๆ เอาเรื่องจัด 🔥 (เป้าสูงสุด 75)`; 
-        barBgGradient = "linear-gradient(90deg, #f59e0b, #fcd34d, #f59e0b)"; 
-        celebratedMonthly = false; 
-    } else {
-        statusText = `เดือดจัด ปลัดบอก! ทะลุหลอดไปเลย 🚀💯`; 
-        barBgGradient = "linear-gradient(90deg, #ef4444, #f43f5e, #ef4444)";
-        if (!celebratedMonthly) { 
-            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 3000 }); 
-            celebratedMonthly = true; 
-        }
+    let statusText = ""; let barBgGradient = "";
+    if (currentMonthCount < 25) { statusText = `วอร์มนิ้วอยู่ฮะ 🥶 (เป้าแรก 25)`; barBgGradient = "linear-gradient(90deg, #9ca3af, #d1d5db, #9ca3af)"; celebratedMonthly = false; }
+    else if (currentMonthCount < 50) { statusText = `ทรงอย่างแบด มาตรฐานเป๊ะ 🤙 (เป้าต่อไป 50)`; barBgGradient = "linear-gradient(90deg, #3b82f6, #93c5fd, #3b82f6)"; celebratedMonthly = false; }
+    else if (currentMonthCount < 75) { statusText = `ปั่นยับๆ เอาเรื่องจัด 🔥 (เป้าสูงสุด 75)`; barBgGradient = "linear-gradient(90deg, #f59e0b, #fcd34d, #f59e0b)"; celebratedMonthly = false; }
+    else { statusText = `เดือดจัด ปลัดบอก! ทะลุหลอดไปเลย 🚀💯`; barBgGradient = "linear-gradient(90deg, #ef4444, #f43f5e, #ef4444)";
+        if (!celebratedMonthly) { confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 3000 }); celebratedMonthly = true; }
     }
     
     let pct = (currentMonthCount / 75) * 100; 
-    if (pct > 100) {
-        pct = 100;
-    }
-    
+    if (pct > 100) pct = 100;
     let monthNameText = filterVal === 'all' ? "เดือนนี้" : document.getElementById('monthFilter').options[document.getElementById('monthFilter').selectedIndex].text.split(' ')[0];
 
     document.getElementById('monthlyStatusText').innerText = `สเตตัส ${monthNameText}: ${statusText}`;
@@ -494,25 +462,14 @@ function openTargetModal() {
     const area = document.getElementById('targetInputsArea'); 
     area.innerHTML = '';
     Object.keys(platformTargets).forEach(p => {
-        const div = document.createElement('div'); 
-        div.className = 'target-setup-grid';
-        div.innerHTML = `
-            <div>
-                <label style="color:${platformColors[p]}">${p} ปัจจุบัน</label>
-                <input type="number" id="cur-input-${p}" value="${platformTargets[p].current}" class="form-control">
-            </div>
-            <div>
-                <label>เป้าหมาย</label>
-                <input type="number" id="tar-input-${p}" value="${platformTargets[p].target}" class="form-control">
-            </div>`;
+        const div = document.createElement('div'); div.className = 'target-setup-grid';
+        div.innerHTML = `<div><label style="color:${platformColors[p]}">${p} ปัจจุบัน</label><input type="number" id="cur-input-${p}" value="${platformTargets[p].current}" class="form-control"></div>
+            <div><label>เป้าหมาย</label><input type="number" id="tar-input-${p}" value="${platformTargets[p].target}" class="form-control"></div>`;
         area.appendChild(div);
     });
     document.getElementById('targetModal').style.display = 'flex';
 }
-
-function closeTargetModal() { 
-    document.getElementById('targetModal').style.display = 'none'; 
-}
+function closeTargetModal() { document.getElementById('targetModal').style.display = 'none'; }
 
 function getPlatformGradient(platform) {
     switch(platform) {
@@ -525,37 +482,21 @@ function getPlatformGradient(platform) {
 }
 
 async function saveTargets() {
-    const btn = document.getElementById('btnSaveTargets'); 
-    btn.disabled = true; 
-    
+    const btn = document.getElementById('btnSaveTargets'); btn.disabled = true; 
     Object.keys(platformTargets).forEach(p => {
         platformTargets[p].current = parseInt(document.getElementById(`cur-input-${p}`).value) || 0;
         platformTargets[p].target = parseInt(document.getElementById(`tar-input-${p}`).value) || 1;
     });
-    
-    const nowStr = new Date().toLocaleDateString('en-GB'); 
-    showLoading('กำลังบันทึกเป้าหมาย...');
-    
+    const nowStr = new Date().toLocaleDateString('en-GB'); showLoading('กำลังบันทึกเป้าหมาย...');
     try {
         if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { 
-            await fetch(GOOGLE_SHEET_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                body: JSON.stringify({ action: 'saveTargets', targets: platformTargets, lastUpdate: nowStr }) 
-            }); 
+            await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'saveTargets', targets: platformTargets, lastUpdate: nowStr }) }); 
         }
-        localStorage.setItem('platformTargets', JSON.stringify(platformTargets)); 
-        localStorage.setItem('targetLastUpdated', nowStr);
+        localStorage.setItem('platformTargets', JSON.stringify(platformTargets)); localStorage.setItem('targetLastUpdated', nowStr);
         document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${nowStr}`;
-        renderTargets(); 
-        closeTargetModal(); 
-        Swal.fire({ icon: 'success', title: 'อัปเดตเป้าหมายแล้ว!', showConfirmButton: false, timer: 1500 });
-    } catch (error) { 
-        Swal.fire({ icon: 'warning', title: 'บันทึกแค่ในเครื่อง', text: 'ส่งแผ่นงานไม่สำเร็จ' }); 
-    } finally { 
-        btn.disabled = false; 
-    }
+        renderTargets(); closeTargetModal(); Swal.fire({ icon: 'success', title: 'อัปเดตเป้าหมายแล้ว!', showConfirmButton: false, timer: 1500 });
+    } catch (error) { Swal.fire({ icon: 'warning', title: 'บันทึกแค่ในเครื่อง', text: 'ส่งแผ่นงานไม่สำเร็จ' }); 
+    } finally { btn.disabled = false; }
 }
 
 function renderTargets() {
@@ -567,414 +508,140 @@ function renderTargets() {
         document.getElementById(`cur-${p}`).innerText = `ปัจจุบัน: ${platformTargets[p].current.toLocaleString()}`;
         document.getElementById(`tar-${p}`).innerText = `เป้าหมาย: ${platformTargets[p].target.toLocaleString()}`;
 
-        if (pct >= 100 && !celebratedTargets[p]) { 
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 }, zIndex: 3000 }); 
-            celebratedTargets[p] = true; 
-        } else if (pct < 100) { 
-            celebratedTargets[p] = false; 
-        }
+        if (pct >= 100 && !celebratedTargets[p]) { confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 }, zIndex: 3000 }); celebratedTargets[p] = true; } 
+        else if (pct < 100) { celebratedTargets[p] = false; }
     });
 }
 
 function toggleEditLinkInputs() {
-    const cont = document.getElementById('editLinksArea'); 
-    const currentLinks = {};
-    
-    ['edit-link-fb','edit-link-tk','edit-link-yt','edit-link-line'].forEach(id => { 
-        const el = document.getElementById(id); 
-        if (el) {
-            currentLinks[id] = el.value; 
-        }
-    });
-    
+    const cont = document.getElementById('editLinksArea'); const currentLinks = {};
+    ['edit-link-fb','edit-link-tk','edit-link-yt','edit-link-line'].forEach(id => { const el = document.getElementById(id); if (el) currentLinks[id] = el.value; });
     cont.innerHTML = '';
-    
-    const platforms = [
-        { id: 'edit-chk-fb', name: 'Facebook', color: '#1877F2', inputId: 'edit-link-fb' }, 
-        { id: 'edit-chk-tk', name: 'TikTok', color: '#000000', inputId: 'edit-link-tk' }, 
-        { id: 'edit-chk-yt', name: 'YouTube', color: '#FF0000', inputId: 'edit-link-yt' }, 
-        { id: 'edit-chk-line', name: 'Line OA', color: '#00C300', inputId: 'edit-link-line' }
-    ];
-    
-    platforms.forEach(p => {
-        if (document.getElementById(p.id).checked) {
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label style="font-size:0.85em; color:${p.color}">${p.name}</label>
-                <input type="text" id="${p.inputId}" class="form-control" placeholder="วางลิงก์ (เช่น https://...)" value="${currentLinks[p.inputId] || ''}">
-            `;
-            cont.appendChild(div);
-        }
-    });
+    const platforms = [ { id: 'edit-chk-fb', name: 'Facebook', color: '#1877F2', inputId: 'edit-link-fb' }, { id: 'edit-chk-tk', name: 'TikTok', color: '#000000', inputId: 'edit-link-tk' }, { id: 'edit-chk-yt', name: 'YouTube', color: '#FF0000', inputId: 'edit-link-yt' }, { id: 'edit-chk-line', name: 'Line OA', color: '#00C300', inputId: 'edit-link-line' } ];
+    platforms.forEach(p => { if (document.getElementById(p.id).checked) { const div = document.createElement('div'); div.innerHTML = `<label style="font-size:0.85em; color:${p.color}">${p.name}</label><input type="text" id="${p.inputId}" class="form-control" placeholder="วางลิงก์ (เช่น https://...)" value="${currentLinks[p.inputId] || ''}">`; cont.appendChild(div); } });
 }
 
 function toggleLinkInputs() {
-    const cont = document.getElementById('linkInputsContainer'); 
-    cont.innerHTML = '';
-    
-    const platforms = [
-        { id: 'chk-fb', name: 'Facebook', color: '#1877F2', inputId: 'link-fb' }, 
-        { id: 'chk-tk', name: 'TikTok', color: '#000000', inputId: 'link-tk' }, 
-        { id: 'chk-yt', name: 'YouTube', color: '#FF0000', inputId: 'link-yt' }, 
-        { id: 'chk-line', name: 'Line OA', color: '#00C300', inputId: 'link-line' }
-    ];
-    
-    platforms.forEach(p => {
-        if (document.getElementById(p.id).checked) {
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <label style="font-size:0.85em; color:${p.color}">${p.name}</label>
-                <input type="text" id="${p.inputId}" class="form-control" placeholder="วางลิงก์ (เช่น https://...)">
-            `;
-            cont.appendChild(div);
-        }
-    });
+    const cont = document.getElementById('linkInputsContainer'); cont.innerHTML = '';
+    const platforms = [ { id: 'chk-fb', name: 'Facebook', color: '#1877F2', inputId: 'link-fb' }, { id: 'chk-tk', name: 'TikTok', color: '#000000', inputId: 'link-tk' }, { id: 'chk-yt', name: 'YouTube', color: '#FF0000', inputId: 'link-yt' }, { id: 'chk-line', name: 'Line OA', color: '#00C300', inputId: 'link-line' } ];
+    platforms.forEach(p => { if (document.getElementById(p.id).checked) { const div = document.createElement('div'); div.innerHTML = `<label style="font-size:0.85em; color:${p.color}">${p.name}</label><input type="text" id="${p.inputId}" class="form-control" placeholder="วางลิงก์ (เช่น https://...)">`; cont.appendChild(div); } });
 }
 
 function openViewsModal(jobId) {
-    const job = marketingData.find(j => j.id === jobId); 
-    if (!job) return;
-    
-    document.getElementById('viewsTitle').innerText = job.title; 
-    document.getElementById('viewsJobId').value = job.id;
-    const cont = document.getElementById('viewsContentContainer'); 
-    cont.innerHTML = '';
-    
-    job.platforms.forEach((p, idx) => {
-        const div = document.createElement('div'); 
-        div.className = 'form-group';
-        div.innerHTML = `
-            <label style="color:${platformColors[p.name]}">${p.name} (ยอดวิว)</label>
-            <input type="number" id="view-input-${idx}" class="form-control" placeholder="ระบุตัวเลขยอดวิว" value="${p.views || 0}">
-        `;
-        cont.appendChild(div);
-    });
-    
+    const job = marketingData.find(j => j.id === jobId); if (!job) return;
+    document.getElementById('viewsTitle').innerText = job.title; document.getElementById('viewsJobId').value = job.id;
+    const cont = document.getElementById('viewsContentContainer'); cont.innerHTML = '';
+    job.platforms.forEach((p, idx) => { const div = document.createElement('div'); div.className = 'form-group'; div.innerHTML = `<label style="color:${platformColors[p.name]}">${p.name} (ยอดวิว)</label><input type="number" id="view-input-${idx}" class="form-control" placeholder="ระบุตัวเลขยอดวิว" value="${p.views || 0}">`; cont.appendChild(div); });
     document.getElementById('viewsModal').style.display = 'flex';
 }
-
-function closeViewsModal() { 
-    document.getElementById('viewsModal').style.display = 'none'; 
-}
+function closeViewsModal() { document.getElementById('viewsModal').style.display = 'none'; }
 
 async function saveViews() {
-    const id = parseInt(document.getElementById('viewsJobId').value);
-    const jobIndex = marketingData.findIndex(j => j.id === id); 
-    if (jobIndex === -1) return;
-    
-    let job = marketingData[jobIndex]; 
-    let total = 0;
-    
-    job.platforms.forEach((p, idx) => { 
-        let v = parseInt(document.getElementById(`view-input-${idx}`).value) || 0; 
-        p.views = v; 
-        total += v; 
-    });
+    const id = parseInt(document.getElementById('viewsJobId').value); const jobIndex = marketingData.findIndex(j => j.id === id); if (jobIndex === -1) return;
+    let job = marketingData[jobIndex]; let total = 0;
+    job.platforms.forEach((p, idx) => { let v = parseInt(document.getElementById(`view-input-${idx}`).value) || 0; p.views = v; total += v; });
     job.totalViews = total; 
-
-    const btnSubmit = document.getElementById('btnSaveViews'); 
-    btnSubmit.disabled = true; 
-    
-    marketingData[jobIndex] = job; 
-    applyFilters(); 
-    closeViewsModal(); 
-    showLoading('กำลังบันทึกยอดวิว...');
-    
+    const btnSubmit = document.getElementById('btnSaveViews'); btnSubmit.disabled = true; 
+    marketingData[jobIndex] = job; applyFilters(); closeViewsModal(); showLoading('กำลังบันทึกยอดวิว...');
     try {
         const updatedJob = { ...job, action: 'edit' }; 
-        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { 
-            await fetch(GOOGLE_SHEET_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                body: JSON.stringify(updatedJob) 
-            }); 
-        }
+        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(updatedJob) }); }
         Swal.fire({ icon: 'success', title: 'อัปเดตยอดวิวเรียบร้อย', showConfirmButton: false, timer: 1500 });
-    } catch (error) { 
-        Swal.fire({ icon: 'error', title: 'ขัดข้อง', text: 'บันทึกลง Sheet ไม่สำเร็จ' }); 
-    } finally { 
-        btnSubmit.disabled = false; 
-    }
+    } catch (error) { Swal.fire({ icon: 'error', title: 'ขัดข้อง', text: 'บันทึกลง Sheet ไม่สำเร็จ' }); } finally { btnSubmit.disabled = false; }
 }
 
 function openEditModal(jobId) {
-    const job = marketingData.find(j => j.id === jobId); 
-    if (!job) return;
-    
-    document.getElementById('editJobId').value = job.id; 
-    document.getElementById('editJobDate').value = job.date; 
-    document.getElementById('editJobTitle').value = job.title; 
-    document.getElementById('editJobType').value = job.type; 
-    document.getElementById('editJobFormat').value = job.format;
-    
-    ['edit-chk-fb', 'edit-chk-tk', 'edit-chk-yt', 'edit-chk-line'].forEach(id => { 
-        document.getElementById(id).checked = false; 
-    });
-    
-    job.platforms.forEach(p => {
-        if (p.name === 'Facebook') document.getElementById('edit-chk-fb').checked = true; 
-        if (p.name === 'TikTok') document.getElementById('edit-chk-tk').checked = true;
-        if (p.name === 'YouTube') document.getElementById('edit-chk-yt').checked = true; 
-        if (p.name === 'Line OA') document.getElementById('edit-chk-line').checked = true;
-    });
-    
+    const job = marketingData.find(j => j.id === jobId); if (!job) return;
+    document.getElementById('editJobId').value = job.id; document.getElementById('editJobDate').value = job.date; document.getElementById('editJobTitle').value = job.title; document.getElementById('editJobType').value = job.type; document.getElementById('editJobFormat').value = job.format;
+    ['edit-chk-fb', 'edit-chk-tk', 'edit-chk-yt', 'edit-chk-line'].forEach(id => { document.getElementById(id).checked = false; });
+    job.platforms.forEach(p => { if (p.name === 'Facebook') document.getElementById('edit-chk-fb').checked = true; if (p.name === 'TikTok') document.getElementById('edit-chk-tk').checked = true; if (p.name === 'YouTube') document.getElementById('edit-chk-yt').checked = true; if (p.name === 'Line OA') document.getElementById('edit-chk-line').checked = true; });
     toggleEditLinkInputs();
-    
-    job.platforms.forEach(p => {
-        if (p.name === 'Facebook' && document.getElementById('edit-link-fb')) document.getElementById('edit-link-fb').value = p.link; 
-        if (p.name === 'TikTok' && document.getElementById('edit-link-tk')) document.getElementById('edit-link-tk').value = p.link;
-        if (p.name === 'YouTube' && document.getElementById('edit-link-yt')) document.getElementById('edit-link-yt').value = p.link; 
-        if (p.name === 'Line OA' && document.getElementById('edit-link-line')) document.getElementById('edit-link-line').value = p.link;
-    });
+    job.platforms.forEach(p => { if (p.name === 'Facebook' && document.getElementById('edit-link-fb')) document.getElementById('edit-link-fb').value = p.link; if (p.name === 'TikTok' && document.getElementById('edit-link-tk')) document.getElementById('edit-link-tk').value = p.link; if (p.name === 'YouTube' && document.getElementById('edit-link-yt')) document.getElementById('edit-link-yt').value = p.link; if (p.name === 'Line OA' && document.getElementById('edit-link-line')) document.getElementById('edit-link-line').value = p.link; });
     document.getElementById('editJobModal').style.display = 'flex';
 }
-
-function closeEditModal() { 
-    document.getElementById('editJobModal').style.display = 'none'; 
-}
+function closeEditModal() { document.getElementById('editJobModal').style.display = 'none'; }
 
 async function saveEditJob() {
-    const id = parseInt(document.getElementById('editJobId').value); 
-    const jobIndex = marketingData.findIndex(j => j.id === id); 
-    if (jobIndex === -1) return;
-    
-    let selected = []; 
-    const platforms = [
-        { id: 'edit-chk-fb', name: 'Facebook', inputId: 'edit-link-fb' }, 
-        { id: 'edit-chk-tk', name: 'TikTok', inputId: 'edit-link-tk' }, 
-        { id: 'edit-chk-yt', name: 'YouTube', inputId: 'edit-link-yt' }, 
-        { id: 'edit-chk-line', name: 'Line OA', inputId: 'edit-link-line' }
-    ];
-    
-    platforms.forEach(p => {
-        if (document.getElementById(p.id).checked) {
-            const existingPlatform = marketingData[jobIndex].platforms.find(ep => ep.name === p.name);
-            const oldViews = existingPlatform ? (existingPlatform.views || 0) : 0; 
-            const linkInput = document.getElementById(p.inputId);
-            selected.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '', views: oldViews });
-        }
-    });
-    
-    if (selected.length === 0) {
-        return Swal.fire({ icon: 'warning', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทาง' });
-    }
-    
+    const id = parseInt(document.getElementById('editJobId').value); const jobIndex = marketingData.findIndex(j => j.id === id); if (jobIndex === -1) return;
+    let selected = []; const platforms = [ { id: 'edit-chk-fb', name: 'Facebook', inputId: 'edit-link-fb' }, { id: 'edit-chk-tk', name: 'TikTok', inputId: 'edit-link-tk' }, { id: 'edit-chk-yt', name: 'YouTube', inputId: 'edit-link-yt' }, { id: 'edit-chk-line', name: 'Line OA', inputId: 'edit-link-line' } ];
+    platforms.forEach(p => { if (document.getElementById(p.id).checked) { const existingPlatform = marketingData[jobIndex].platforms.find(ep => ep.name === p.name); const oldViews = existingPlatform ? (existingPlatform.views || 0) : 0; const linkInput = document.getElementById(p.inputId); selected.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '', views: oldViews }); } });
+    if (selected.length === 0) return Swal.fire({ icon: 'warning', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทาง' });
     const newTotalViews = selected.reduce((sum, p) => sum + p.views, 0);
-    const updatedJob = { 
-        action: 'edit', id: id, date: document.getElementById('editJobDate').value, 
-        title: document.getElementById('editJobTitle').value, type: document.getElementById('editJobType').value, 
-        format: document.getElementById('editJobFormat').value, platforms: selected, totalViews: newTotalViews 
-    };
-
-    const btnSubmit = document.getElementById('btnSaveEdit'); 
-    btnSubmit.disabled = true; 
-    
-    marketingData[jobIndex] = updatedJob; 
-    applyFilters(); 
-    updateChart(); 
-    closeEditModal(); 
-    showLoading('กำลังอัปเดตข้อมูล...');
-    
+    const updatedJob = { action: 'edit', id: id, date: document.getElementById('editJobDate').value, title: document.getElementById('editJobTitle').value, type: document.getElementById('editJobType').value, format: document.getElementById('editJobFormat').value, platforms: selected, totalViews: newTotalViews };
+    const btnSubmit = document.getElementById('btnSaveEdit'); btnSubmit.disabled = true; 
+    marketingData[jobIndex] = updatedJob; applyFilters(); updateChart(); closeEditModal(); showLoading('กำลังอัปเดตข้อมูล...');
     try {
-        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { 
-            await fetch(GOOGLE_SHEET_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                body: JSON.stringify(updatedJob) 
-            }); 
-        }
+        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(updatedJob) }); }
         Swal.fire({ icon: 'success', title: 'แก้ไขสำเร็จ!', showConfirmButton: false, timer: 1500 });
-    } catch (error) { 
-        Swal.fire({ icon: 'error', text: 'สำเร็จฝั่งเว็บ แต่บันทึกลง Sheet ไม่เข้า' }); 
-    } finally { 
-        btnSubmit.disabled = false; 
-    }
+    } catch (error) { Swal.fire({ icon: 'error', text: 'สำเร็จฝั่งเว็บ แต่บันทึกลง Sheet ไม่เข้า' }); } finally { btnSubmit.disabled = false; }
 }
 
 async function saveJob() {
-    const title = document.getElementById('jobTitle').value.trim(); 
-    const dateInput = document.getElementById('jobDate').value; 
-    const type = document.getElementById('jobType').value; 
-    const format = document.getElementById('jobFormat').value;
-    const btnSubmit = document.getElementById('btnSaveMain');
-    
-    if (!dateInput || !title) {
-        return Swal.fire({ icon: 'warning', text: 'กรุณากรอกวันที่และชื่อชิ้นงานให้ครบครับ' });
-    }
-
-    let selectedPlatforms = []; 
-    const platformCheckboxes = [
-        { chkId: 'chk-fb', name: 'Facebook', inputId: 'link-fb' }, 
-        { chkId: 'chk-tk', name: 'TikTok', inputId: 'link-tk' }, 
-        { chkId: 'chk-yt', name: 'YouTube', inputId: 'link-yt' }, 
-        { chkId: 'chk-line', name: 'Line OA', inputId: 'link-line' }
-    ];
-    
-    platformCheckboxes.forEach(p => {
-        if (document.getElementById(p.chkId)?.checked) {
-            const linkInput = document.getElementById(p.inputId);
-            selectedPlatforms.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '', views: 0 });
-        }
-    });
-    
-    if (selectedPlatforms.length === 0) {
-        return Swal.fire({ icon: 'warning', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทาง' });
-    }
-
+    const title = document.getElementById('jobTitle').value.trim(); const dateInput = document.getElementById('jobDate').value; const type = document.getElementById('jobType').value; const format = document.getElementById('jobFormat').value; const btnSubmit = document.getElementById('btnSaveMain');
+    if (!dateInput || !title) return Swal.fire({ icon: 'warning', text: 'กรุณากรอกวันที่และชื่อชิ้นงานให้ครบครับ' });
+    let selectedPlatforms = []; const platformCheckboxes = [ { chkId: 'chk-fb', name: 'Facebook', inputId: 'link-fb' }, { chkId: 'chk-tk', name: 'TikTok', inputId: 'link-tk' }, { chkId: 'chk-yt', name: 'YouTube', inputId: 'link-yt' }, { chkId: 'chk-line', name: 'Line OA', inputId: 'link-line' } ];
+    platformCheckboxes.forEach(p => { if (document.getElementById(p.chkId)?.checked) { const linkInput = document.getElementById(p.inputId); selectedPlatforms.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '', views: 0 }); } });
+    if (selectedPlatforms.length === 0) return Swal.fire({ icon: 'warning', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทาง' });
     const newJob = { action: 'add', id: Date.now(), date: dateInput, title: title, type: type, format: format, platforms: selectedPlatforms, totalViews: 0 };
     btnSubmit.disabled = true; 
-    
-    marketingData.push(newJob); 
-    document.getElementById('jobTitle').value = '';
-    toggleLinkInputs(); 
-    setRandomMascots(); 
-    applyFilters(); 
-    updateChart(); 
-    showLoading('กำลังบันทึกข้อมูล...');
-
+    marketingData.push(newJob); document.getElementById('jobTitle').value = ''; toggleLinkInputs(); setRandomMascots(); applyFilters(); updateChart(); showLoading('กำลังบันทึกข้อมูล...');
     try {
-        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { 
-            await fetch(GOOGLE_SHEET_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                body: JSON.stringify(newJob) 
-            }); 
-        }
+        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(newJob) }); }
         Swal.fire({ icon: 'success', title: 'บันทึกชิ้นงานสำเร็จ!', showConfirmButton: false, timer: 1500 });
-    } catch (error) { 
-        Swal.fire({ icon: 'error', text: 'บันทึกหน้าเว็บสำเร็จ แต่เข้า Sheet ไม่ได้' }); 
-    } finally { 
-        btnSubmit.disabled = false; 
-    }
+    } catch (error) { Swal.fire({ icon: 'error', text: 'บันทึกหน้าเว็บสำเร็จ แต่เข้า Sheet ไม่ได้' }); } finally { btnSubmit.disabled = false; }
 }
 
 function deleteJob(id) {
-    Swal.fire({ 
-        title: 'ยืนยันการลบ?', 
-        text: "หากลบแล้วจะไม่สามารถกู้คืนได้!", 
-        icon: 'warning', 
-        showCancelButton: true, 
-        confirmButtonColor: '#d33', 
-        confirmButtonText: 'ลบเลย!'
+    Swal.fire({ title: 'ยืนยันการลบ?', text: "หากลบแล้วจะไม่สามารถกู้คืนได้!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'ลบเลย!'
     }).then(async (result) => {
         if (result.isConfirmed) {
-            marketingData = marketingData.filter(j => j.id !== id); 
-            setRandomMascots(); 
-            applyFilters(); 
-            updateChart(); 
-            showToast('success', 'ลบข้อมูลเรียบร้อยแล้ว');
-            
-            try {
-                if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { 
-                    await fetch(GOOGLE_SHEET_URL, { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                        body: JSON.stringify({ action: 'delete', id: id }) 
-                    }); 
-                }
-            } catch (error) { 
-                console.error('Error:', error); 
-            }
+            marketingData = marketingData.filter(j => j.id !== id); setRandomMascots(); applyFilters(); updateChart(); showToast('success', 'ลบข้อมูลเรียบร้อยแล้ว');
+            try { if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'delete', id: id }) }); }
+            } catch (error) { console.error('Error:', error); }
         }
     });
 }
 
 function getBarGradient(context) {
-    const chart = context.chart; 
-    const {ctx, chartArea} = chart; 
-    if (!chartArea) return '#4f46e5'; 
-    
-    const value = context.raw; 
-    const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-    
+    const chart = context.chart; const {ctx, chartArea} = chart; if (!chartArea) return '#4f46e5'; 
+    const value = context.raw; const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
     if (value < 25) { gradient.addColorStop(0, '#9ca3af'); gradient.addColorStop(1, '#cbd5e1'); } 
     else if (value < 50) { gradient.addColorStop(0, '#3b82f6'); gradient.addColorStop(1, '#93c5fd'); } 
     else if (value < 80) { gradient.addColorStop(0, '#f59e0b'); gradient.addColorStop(1, '#fcd34d'); } 
     else { gradient.addColorStop(0, '#ef4444'); gradient.addColorStop(1, '#fda4af'); }
-    
     return gradient;
 }
 
 function updateChart() {
     const ctx = document.getElementById('monthlyChart').getContext('2d');
     let counts = new Array(12).fill(0);
-    filteredAllData.forEach(j => { 
-        const m = new Date(j.date).getMonth(); 
-        if (!isNaN(m)) {
-            counts[m]++; 
-        }
-    });
-    
-    if (monthlyChartInstance) {
-        monthlyChartInstance.destroy();
-    }
-    
+    filteredAllData.forEach(j => { const m = new Date(j.date).getMonth(); if (!isNaN(m)) counts[m]++; });
+    if (monthlyChartInstance) monthlyChartInstance.destroy();
     monthlyChartInstance = new Chart(ctx, {
         type: 'bar',
-        data: { 
-            labels: ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'], 
-            datasets: [{ 
-                label: 'จำนวนงาน', 
-                data: counts, 
-                backgroundColor: function(context) { return getBarGradient(context); }, 
-                borderRadius: 4 
-            }] 
-        },
+        data: { labels: ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'], datasets: [{ label: 'จำนวนงาน', data: counts, backgroundColor: function(context) { return getBarGradient(context); }, borderRadius: 4 }] },
         options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            onClick: (e, elements) => { 
-                if (elements.length > 0) { 
-                    document.getElementById('monthFilter').value = elements[0].index; 
-                    applyFilters(); 
-                    updateMonthlyStatus(); 
-                    setRandomMascots(); 
-                } 
-            },
-            onHover: (event, chartElement) => { 
-                event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'; 
-            },
-            plugins: { 
-                legend: { display: false }, 
-                datalabels: { 
-                    anchor: 'end', 
-                    align: 'top', 
-                    color: '#4f46e5', 
-                    font: { weight: 'bold' }, 
-                    formatter: function(value) { return value > 0 ? value : ''; } 
-                } 
-            },
-            layout: { padding: { top: 25 } } 
+            responsive: true, maintainAspectRatio: false, 
+            onClick: (e, elements) => { if (elements.length > 0) { document.getElementById('monthFilter').value = elements[0].index; applyFilters(); updateMonthlyStatus(); setRandomMascots(); } },
+            onHover: (event, chartElement) => { event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'; },
+            plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', color: '#4f46e5', font: { weight: 'bold' }, formatter: function(value) { return value > 0 ? value : ''; } } }, layout: { padding: { top: 25 } } 
         }
     });
     updateMonthlyStatus();
 }
 
 function generateTableRows(data) {
-    if (data.length === 0) {
-        return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
-    }
-    
+    if (data.length === 0) return '<tr><td colspan="7" style="text-align:center; padding:30px;">ไม่มีข้อมูล</td></tr>';
     const disabledState = isExecutiveMode ? 'disabled' : '';
-
     return data.map(j => {
         let actualTotalViews = j.platforms.reduce((sum, p) => sum + (p.views || 0), 0);
-        if (actualTotalViews === 0 && j.totalViews > 0) {
-            actualTotalViews = j.totalViews; 
-        }
-        
+        if (actualTotalViews === 0 && j.totalViews > 0) actualTotalViews = j.totalViews; 
         const dateStr = new Date(j.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
         const formatColor = j.format === 'Videos' ? '#10b981' : '#f59e0b';
         const formatEmoji = j.format === 'Videos' ? '🎬 Videos' : '🖼️ Pictures';
         const tColor = typeColors[j.type] || '#6b7280'; 
-        
         let platformBadges = j.platforms.map(p => `<span class="badge" style="background:${platformColors[p.name]}">${p.name}</span>`).join(' ');
         let linkButtonsHtml = j.platforms.filter(p => p.link && p.link !== "").map(p => `<a href="${p.link}" target="_blank" class="btn-action" style="margin-bottom:4px; display:inline-block; text-decoration:none;" title="คลิกเพื่อเปิดดูลิงก์ต้นฉบับ">🔗 ${p.name}</a>`).join(' ');
-        
         return `
             <tr>
                 <td style="white-space: nowrap;">${dateStr}</td>
@@ -983,10 +650,7 @@ function generateTableRows(data) {
                 <td>${platformBadges}</td>
                 <td>${linkButtonsHtml || '<span style="color:#aaa; font-size:0.85em;">(ไม่มีลิงก์)</span>'}</td>
                 <td><b style="color:var(--primary); font-size:1.2em;" title="ยอดวิวรวมทุกแพลตฟอร์ม">${actualTotalViews.toLocaleString()}</b><br><button class="btn-action" style="margin-top: 5px;" onclick="openViewsModal(${j.id})" title="คลิกเพื่อบันทึกและดูยอดวิวแยกของแต่ละช่องทาง">📊 แยกช่องทาง</button></td>
-                <td class="action-group">
-                    <button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;" ${disabledState} title="แก้ไขรายละเอียดงานนี้">✏️ แก้ไข</button><br>
-                    <button class="btn-action btn-danger" onclick="deleteJob(${j.id})" ${disabledState} title="ลบข้อมูลงานนี้ถาวร">🗑️ ลบ</button>
-                </td>
+                <td class="action-group"><button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;" ${disabledState} title="แก้ไขรายละเอียดงานนี้">✏️ แก้ไข</button><br><button class="btn-action btn-danger" onclick="deleteJob(${j.id})" ${disabledState} title="ลบข้อมูลงานนี้ถาวร">🗑️ ลบ</button></td>
             </tr>
         `;
     }).join('');
@@ -997,159 +661,74 @@ function applyFilters() {
     const formatChecked = Array.from(document.querySelectorAll('.filter-format:checked')).map(el => el.value);
     const platformChecked = Array.from(document.querySelectorAll('.filter-platform:checked')).map(el => el.value);
     const typeChecked = Array.from(document.querySelectorAll('.filter-type:checked')).map(el => el.value);
-    
-    const tagArea = document.getElementById('activeFiltersArea'); 
-    let tagsHtml = '';
-    
+    const tagArea = document.getElementById('activeFiltersArea'); let tagsHtml = '';
     if (formatChecked.length > 0) tagsHtml += formatChecked.map(f => `<span class="filter-tag">📐 ${f}</span>`).join('');
     if (platformChecked.length > 0) tagsHtml += platformChecked.map(p => `<span class="filter-tag">🌐 ${p}</span>`).join('');
     if (typeChecked.length > 0) tagsHtml += typeChecked.map(t => `<span class="filter-tag">🏷️ ${t}</span>`).join('');
     tagArea.innerHTML = tagsHtml;
-
     filteredAllData = marketingData.filter(j => {
-        if (monthFilter !== 'all') { 
-            if (new Date(j.date).getMonth() !== parseInt(monthFilter)) return false; 
-        }
-        if (formatChecked.length > 0) { 
-            if (!formatChecked.includes(j.format)) return false; 
-        }
-        if (typeChecked.length > 0) { 
-            if (!typeChecked.includes(j.type)) return false; 
-        }
-        if (platformChecked.length > 0) {
-            const jobPlatforms = j.platforms.map(p => p.name);
-            if (!platformChecked.some(p => jobPlatforms.includes(p))) return false;
-        }
+        if (monthFilter !== 'all') { if (new Date(j.date).getMonth() !== parseInt(monthFilter)) return false; }
+        if (formatChecked.length > 0) { if (!formatChecked.includes(j.format)) return false; }
+        if (typeChecked.length > 0) { if (!typeChecked.includes(j.type)) return false; }
+        if (platformChecked.length > 0) { const jobPlatforms = j.platforms.map(p => p.name); if (!platformChecked.some(p => jobPlatforms.includes(p))) return false; }
         return true;
     });
-    
     filteredAllData.sort((a,b) => new Date(b.date) - new Date(a.date));
     document.getElementById('mainTableBody').innerHTML = generateTableRows(filteredAllData.slice(0, 10));
-    
-    if (document.getElementById('allContentModal').style.display === 'flex') { 
-        currentPage = 1; 
-        updateAllContentTable(true); 
-    }
-    
-    // 🌟 เรียกใช้ฟังก์ชันคำนวณยอดวิวด้านบนใหม่ทุกครั้งที่มีการกรองข้อมูล 🌟
+    if (document.getElementById('allContentModal').style.display === 'flex') { currentPage = 1; updateAllContentTable(true); }
     calculateViewStats(filteredAllData);
 }
 
-function resetFilters() {
-    document.getElementById('monthFilter').value = 'all'; 
-    document.querySelectorAll('.filter-chk-label input').forEach(el => { el.checked = false; });
-    applyFilters(); 
-    updateMonthlyStatus(); 
-    setRandomMascots();
-}
+function resetFilters() { document.getElementById('monthFilter').value = 'all'; document.querySelectorAll('.filter-chk-label input').forEach(el => { el.checked = false; }); applyFilters(); updateMonthlyStatus(); setRandomMascots(); }
 
 function updateAllContentTable(isPreFiltered = false) {
-    if (!isPreFiltered) {
-        filteredAllData = [...marketingData].sort((a,b) => new Date(b.date) - new Date(a.date));
-        document.getElementById('monthFilter').value = 'all'; 
-        document.querySelectorAll('.filter-chk-label input').forEach(el => { el.checked = false; }); 
-        document.getElementById('activeFiltersArea').innerHTML = '';
-    }
-    
-    const totalItems = filteredAllData.length; 
-    document.getElementById('allContentCount').innerText = `พบ ${totalItems} รายการ`;
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    document.getElementById('allTableBody').innerHTML = generateTableRows(filteredAllData.slice(startIndex, startIndex + itemsPerPage));
-    
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    document.getElementById('pageIndicator').innerText = `หน้า ${currentPage} จาก ${totalPages}`;
-    document.getElementById('btnPrevPage').disabled = currentPage === 1; 
-    document.getElementById('btnNextPage').disabled = currentPage === totalPages || totalPages === 0;
+    if (!isPreFiltered) { filteredAllData = [...marketingData].sort((a,b) => new Date(b.date) - new Date(a.date)); document.getElementById('monthFilter').value = 'all'; document.querySelectorAll('.filter-chk-label input').forEach(el => { el.checked = false; }); document.getElementById('activeFiltersArea').innerHTML = ''; }
+    const totalItems = filteredAllData.length; document.getElementById('allContentCount').innerText = `พบ ${totalItems} รายการ`;
+    const startIndex = (currentPage - 1) * itemsPerPage; document.getElementById('allTableBody').innerHTML = generateTableRows(filteredAllData.slice(startIndex, startIndex + itemsPerPage));
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1; document.getElementById('pageIndicator').innerText = `หน้า ${currentPage} จาก ${totalPages}`; document.getElementById('btnPrevPage').disabled = currentPage === 1; document.getElementById('btnNextPage').disabled = currentPage === totalPages || totalPages === 0;
 }
+function changePage(direction) { currentPage += direction; updateAllContentTable(true); document.querySelector('#allContentModal .modal-content').scrollTop = 0; }
+function openAllContentModal() { currentPage = 1; applyFilters(); document.getElementById('allContentModal').style.display = 'flex'; }
+function closeAllContentModal() { document.getElementById('allContentModal').style.display = 'none'; }
 
-function changePage(direction) { 
-    currentPage += direction; 
-    updateAllContentTable(true); 
-    document.querySelector('#allContentModal .modal-content').scrollTop = 0; 
-}
-
-function openAllContentModal() { 
-    currentPage = 1; 
-    applyFilters(); 
-    document.getElementById('allContentModal').style.display = 'flex'; 
-}
-
-function closeAllContentModal() { 
-    document.getElementById('allContentModal').style.display = 'none'; 
-}
-
-// 🌟 โหลดข้อมูลทั้งหมดจาก Google Sheet (รวม Campaign)
 function loadDataFromGoogleSheet() {
     showLoading('กำลังดึงข้อมูล Google Sheet');
     fetch(GOOGLE_SHEET_URL)
         .then(response => response.json())
         .then(data => {
             if (data && data.result === "success") {
-                if (data.marketingData || data.data) { 
-                    marketingData = data.marketingData || data.data; 
-                }
-                if (data.targets && Object.keys(data.targets).length > 0) { 
-                    platformTargets = data.targets; 
-                }
-                if (data.campaigns) { 
-                    campaignData = data.campaigns; 
-                } 
+                if (data.marketingData || data.data) marketingData = data.marketingData || data.data; 
+                if (data.targets && Object.keys(data.targets).length > 0) platformTargets = data.targets; 
+                if (data.campaigns) campaignData = data.campaigns; 
                 if (data.lastUpdate && data.lastUpdate !== "ยังไม่มีข้อมูล") {
                     let formattedDate = data.lastUpdate;
-                    if (formattedDate.includes('T')) { 
-                        let d = new Date(formattedDate); 
-                        if (!isNaN(d.getTime())) { 
-                            formattedDate = d.toLocaleDateString('en-GB'); 
-                        }
-                    }
+                    if (formattedDate.includes('T')) { let d = new Date(formattedDate); if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString('en-GB'); }
                     document.getElementById('lastUpdateText').innerText = `อัปเดตผู้ติดตามล่าสุด: ${formattedDate}`;
                 }
-                
-                renderTargets();
-                renderCampaignCards(); // วาดการ์ดแคมเปญ
-                applyFilters(); // applyFilters จะกระตุ้น calculateViewStats อัตโนมัติ
-                updateChart();
-                setRandomMascots();
+                renderTargets(); renderCampaignCards(); applyFilters(); updateChart(); setRandomMascots();
             }
-            Swal.close();
-            showToast('success', 'เชื่อมต่อข้อมูลสำเร็จ');
+            Swal.close(); showToast('success', 'เชื่อมต่อข้อมูลสำเร็จ');
         })
         .catch(error => {
-            console.error("Fetch Error:", error);
-            renderTargets(); 
-            applyFilters(); 
-            updateChart(); 
-            setRandomMascots();
+            console.error("Fetch Error:", error); renderTargets(); applyFilters(); updateChart(); setRandomMascots();
             Swal.fire({ icon: 'info', title: 'ออฟไลน์โหมด', text: 'ไม่สามารถเชื่อมต่อ Server ได้', confirmButtonColor: '#4f46e5' });
         });
 }
 
-// 🌟 ฟังก์ชันคำนวณยอดวิวรวมแยกตามช่องทางและรูปแบบ 🌟
 function calculateViewStats(dataList) {
-    const stats = {
-        'Facebook': { total: 0, vid: 0, pic: 0 },
-        'TikTok': { total: 0, vid: 0, pic: 0 },
-        'YouTube': { total: 0, vid: 0, pic: 0 },
-        'Line OA': { total: 0, vid: 0, pic: 0 }
-    };
-
+    const stats = { 'Facebook': { total: 0, vid: 0, pic: 0 }, 'TikTok': { total: 0, vid: 0, pic: 0 }, 'YouTube': { total: 0, vid: 0, pic: 0 }, 'Line OA': { total: 0, vid: 0, pic: 0 } };
     dataList.forEach(job => {
-        const format = job.format; // 'Videos' หรือ 'Pictures'
+        const format = job.format;
         job.platforms.forEach(p => {
             const views = parseInt(p.views) || 0;
             if (stats[p.name]) {
                 stats[p.name].total += views;
-                if (format === 'Videos') {
-                    stats[p.name].vid += views;
-                } else if (format === 'Pictures') {
-                    stats[p.name].pic += views;
-                }
+                if (format === 'Videos') stats[p.name].vid += views;
+                else if (format === 'Pictures') stats[p.name].pic += views;
             }
         });
     });
-
     const platformMap = { 'Facebook': 'fb', 'TikTok': 'tk', 'YouTube': 'yt', 'Line OA': 'line' };
-    
     Object.keys(platformMap).forEach(key => {
         const idKey = platformMap[key];
         if (document.getElementById(`stat-tot-${idKey}`)) {
@@ -1163,13 +742,6 @@ function calculateViewStats(dataList) {
 window.onload = () => {
     document.getElementById('jobDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('btnSetTarget').disabled = isExecutiveMode;
-    renderTargets(); 
-    toggleLinkInputs(); 
-    loadDataFromGoogleSheet();
+    renderTargets(); toggleLinkInputs(); loadDataFromGoogleSheet();
 };
-
-window.onclick = (e) => { 
-    if (e.target.className === 'modal') { 
-        document.querySelectorAll('.modal').forEach(m => { m.style.display = 'none'; }); 
-    }
-};
+window.onclick = (e) => { if (e.target.className === 'modal') document.querySelectorAll('.modal').forEach(m => { m.style.display = 'none'; }); };
