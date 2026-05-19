@@ -128,7 +128,7 @@ function toggleMode() {
     }, 350);
 }
 
-// 🌟 แคมเปญ: วาดการ์ด (อัปเดตใหม่ ให้มีปุ่มเพิ่มแคมเปญเป็นการ์ดใบแรก)
+// 🌟 แคมเปญ: วาดการ์ด
 function renderCampaignCards() {
     const container = document.getElementById('campaignCardsContainer');
     let htmlContent = '';
@@ -196,7 +196,6 @@ function openTrendModal(platform) {
     
     let monthlyViews = new Array(12).fill(0);
     
-    // คำนวณยอดวิวสะสมแยกตามเดือน (อิงจากประวัติการลงงานทั้งหมด)
     marketingData.forEach(job => {
         const d = new Date(job.date);
         const m = d.getMonth();
@@ -212,7 +211,7 @@ function openTrendModal(platform) {
 
     const ctx = document.getElementById('trendChart').getContext('2d');
     if (trendChartInstance) {
-        trendChartInstance.destroy(); // เคลียร์กราฟเก่าก่อนวาดใหม่
+        trendChartInstance.destroy(); 
     }
 
     trendChartInstance = new Chart(ctx, {
@@ -223,10 +222,10 @@ function openTrendModal(platform) {
                 label: `ยอดวิว ${platform}`,
                 data: monthlyViews,
                 borderColor: platformColors[platform] || '#4f46e5',
-                backgroundColor: (platformColors[platform] || '#4f46e5') + '22', // สีโปร่งใส 22 (Hex)
+                backgroundColor: (platformColors[platform] || '#4f46e5') + '22',
                 borderWidth: 3,
                 fill: true,
-                tension: 0.3, // ทำเส้นให้โค้งมนนิดๆ
+                tension: 0.3,
                 pointBackgroundColor: platformColors[platform] || '#4f46e5',
                 pointRadius: 5,
                 pointHoverRadius: 7
@@ -241,7 +240,7 @@ function openTrendModal(platform) {
                     align: 'top',
                     color: platformColors[platform] || '#4f46e5',
                     font: { weight: 'bold', size: 10 },
-                    formatter: function(value) { return value > 0 ? value.toLocaleString() : ''; }
+                    formatter: function(value) { return value > 0 ? formatNumberToKM(value) : ''; } // ประยุกต์ใช้ K/M กับป้ายบนกราฟด้วย
                 }
             },
             scales: {
@@ -579,7 +578,7 @@ async function saveEditJob() {
 async function saveJob() {
     const title = document.getElementById('jobTitle').value.trim(); const dateInput = document.getElementById('jobDate').value; const type = document.getElementById('jobType').value; const format = document.getElementById('jobFormat').value; const btnSubmit = document.getElementById('btnSaveMain');
     if (!dateInput || !title) return Swal.fire({ icon: 'warning', text: 'กรุณากรอกวันที่และชื่อชิ้นงานให้ครบครับ' });
-    let selectedPlatforms = []; const platformCheckboxes = [ { chkId: 'chk-fb', name: 'Facebook', inputId: 'link-fb' }, { chkId: 'chk-tk', name: 'TikTok', inputId: 'link-tk' }, { chkId: 'chk-yt', name: 'YouTube', inputId: 'link-yt' }, { chkId: 'chk-line', name: 'Line OA', inputId: 'link-line' } ];
+    let selectedPlatforms = []; const platformCheckboxes = [ { chkId: 'chk-fb', name: 'Facebook', inputId: 'link-fb' }, { id: 'chk-tk', name: 'TikTok', inputId: 'link-tk' }, { id: 'chk-yt', name: 'YouTube', inputId: 'link-yt' }, { id: 'chk-line', name: 'Line OA', inputId: 'link-line' } ];
     platformCheckboxes.forEach(p => { if (document.getElementById(p.chkId)?.checked) { const linkInput = document.getElementById(p.inputId); selectedPlatforms.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '', views: 0 }); } });
     if (selectedPlatforms.length === 0) return Swal.fire({ icon: 'warning', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทาง' });
     const newJob = { action: 'add', id: Date.now(), date: dateInput, title: title, type: type, format: format, platforms: selectedPlatforms, totalViews: 0 };
@@ -715,6 +714,18 @@ function loadDataFromGoogleSheet() {
         });
 }
 
+// 🌟 ฟังก์ชันย่อตัวเลข เช่น 1500 -> 1.5K, 2000000 -> 2M
+function formatNumberToKM(num) {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return num.toString();
+}
+
+// 🌟 ฟังก์ชันคำนวณยอดวิวรวมแยกตามช่องทางและรูปแบบ 🌟
 function calculateViewStats(dataList) {
     const stats = { 'Facebook': { total: 0, vid: 0, pic: 0 }, 'TikTok': { total: 0, vid: 0, pic: 0 }, 'YouTube': { total: 0, vid: 0, pic: 0 }, 'Line OA': { total: 0, vid: 0, pic: 0 } };
     dataList.forEach(job => {
@@ -728,13 +739,15 @@ function calculateViewStats(dataList) {
             }
         });
     });
+    
     const platformMap = { 'Facebook': 'fb', 'TikTok': 'tk', 'YouTube': 'yt', 'Line OA': 'line' };
     Object.keys(platformMap).forEach(key => {
         const idKey = platformMap[key];
         if (document.getElementById(`stat-tot-${idKey}`)) {
-            document.getElementById(`stat-tot-${idKey}`).innerText = stats[key].total.toLocaleString();
-            document.getElementById(`stat-vid-${idKey}`).innerText = stats[key].vid.toLocaleString();
-            document.getElementById(`stat-pic-${idKey}`).innerText = stats[key].pic.toLocaleString();
+            // เรียกใช้ formatNumberToKM ก่อนแสดงผล
+            document.getElementById(`stat-tot-${idKey}`).innerText = formatNumberToKM(stats[key].total);
+            document.getElementById(`stat-vid-${idKey}`).innerText = formatNumberToKM(stats[key].vid);
+            document.getElementById(`stat-pic-${idKey}`).innerText = formatNumberToKM(stats[key].pic);
         }
     });
 }
