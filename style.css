@@ -498,7 +498,6 @@ h1, h2, h3 {
     margin-bottom: 20px; 
 }
 
-/* 🔥 ปรับปรุงขนาดและโครงสร้างการ์ด Campaign ตรงนี้ครับ 🔥 */
 .campaign-grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
@@ -598,7 +597,6 @@ h1, h2, h3 {
     border-color: white transparent transparent transparent; 
 }
 
-/* Utilities */
 .preview-img { 
     max-width: 100%; 
     border-radius: 6px; 
@@ -608,7 +606,7 @@ h1, h2, h3 {
 }
 
 /* ==================================
-   🔥 CSS สำหรับ Upsell Badges & TIPS (ใหม่) 🔥
+   🔥 CSS สำหรับ Upsell Badges & TIPS 🔥
    ================================== */
 .stat-badge {
     padding: 8px 16px;
@@ -651,6 +649,79 @@ h1, h2, h3 {
     display: inline-block;
 }
 
+/* ==================================
+   📊 View Stats Cards (การ์ดสรุปยอดวิว)
+   ================================== */
+.views-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.view-stat-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    border: 1px solid var(--border);
+    transition: transform 0.2s, box-shadow 0.2s;
+    background-image: linear-gradient(to bottom, #ffffff, #f8fafc);
+}
+
+.view-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.06);
+}
+
+.view-stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 1.05em;
+}
+
+.view-total {
+    font-size: 1.3em;
+    font-weight: 900;
+    color: var(--text-main);
+    cursor: help;
+}
+
+.view-stat-details {
+    display: flex;
+    gap: 10px;
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 12px;
+}
+
+.detail-box {
+    flex: 1;
+    background: #ffffff;
+    padding: 8px 5px;
+    border-radius: 8px;
+    font-size: 0.85em;
+    text-align: center;
+    color: var(--text-muted);
+    border: 1px solid #e2e8f0;
+    cursor: help;
+    transition: background 0.2s;
+}
+
+.detail-box:hover {
+    background: #f1f5f9;
+}
+
+.detail-box b {
+    color: var(--text-main);
+    font-size: 1.15em;
+    display: block;
+    margin-top: 4px;
+}
+
+/* ==================================
+   Media Queries
+   ================================== */
 @media (max-width: 768px) { 
     body { padding: 10px; } 
     .target-setup-grid { grid-template-columns: 1fr; gap: 10px; } 
