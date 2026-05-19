@@ -11,6 +11,7 @@ const platformColors = {
     'Line OA': '#00C300' 
 };
 
+// 🌟 แก้ไข: เติมเครื่องหมาย ' ตรงอู่สี และลบทุบโต๊ะกับข่าวที่ซ้ำออกแล้ว
 const typeColors = {
     'ส่งมอบรถใหม่': '#10b981', 
     'คู่บื้อ': '#8b5cf6', 
@@ -211,7 +212,7 @@ function resetCampaignFilter() {
     renderCampaignDetailTable();
 }
 
-// 🌟 แคมเปญ: วาดตารางและคำนวณยอด Upsell 🌟
+// 🌟 แคมเปญ: วาดตารางและคำนวณยอด Upsell
 function renderCampaignDetailTable() {
     const advisorFilter = document.getElementById('detailAdvisorFilter').value;
     const sortOrder = document.getElementById('detailSortOrder').value;
@@ -427,7 +428,7 @@ function deleteCampaign(id) {
 }
 
 // ==========================================
-// Marketing Functions (ของเดิมทั้งหมด - กางให้เต็ม 100%)
+// Marketing Functions
 // ==========================================
 function updateMonthlyStatus() {
     const filterVal = document.getElementById('monthFilter').value;
@@ -972,19 +973,19 @@ function generateTableRows(data) {
         const tColor = typeColors[j.type] || '#6b7280'; 
         
         let platformBadges = j.platforms.map(p => `<span class="badge" style="background:${platformColors[p.name]}">${p.name}</span>`).join(' ');
-        let linkButtonsHtml = j.platforms.filter(p => p.link && p.link !== "").map(p => `<a href="${p.link}" target="_blank" class="btn-action" style="margin-bottom:4px; display:inline-block; text-decoration:none;">🔗 ${p.name}</a>`).join(' ');
+        let linkButtonsHtml = j.platforms.filter(p => p.link && p.link !== "").map(p => `<a href="${p.link}" target="_blank" class="btn-action" style="margin-bottom:4px; display:inline-block; text-decoration:none;" title="คลิกเพื่อเปิดดูลิงก์ต้นฉบับ">🔗 ${p.name}</a>`).join(' ');
         
         return `
             <tr>
                 <td style="white-space: nowrap;">${dateStr}</td>
                 <td style="min-width: 150px;"><b>${j.title}</b><br><span class="badge" style="background: ${tColor}; opacity: 0.9; margin-top: 4px;">${j.type}</span></td>
-                <td><span class="badge" style="background:${formatColor}">${formatEmoji}</span></td>
+                <td><span class="badge" style="background:${formatColor}" title="ประเภทคอนเทนต์">${formatEmoji}</span></td>
                 <td>${platformBadges}</td>
                 <td>${linkButtonsHtml || '<span style="color:#aaa; font-size:0.85em;">(ไม่มีลิงก์)</span>'}</td>
-                <td><b style="color:var(--primary); font-size:1.2em;">${actualTotalViews.toLocaleString()}</b><br><button class="btn-action" style="margin-top: 5px;" onclick="openViewsModal(${j.id})">📊 แยกช่องทาง</button></td>
+                <td><b style="color:var(--primary); font-size:1.2em;" title="ยอดวิวรวมทุกแพลตฟอร์ม">${actualTotalViews.toLocaleString()}</b><br><button class="btn-action" style="margin-top: 5px;" onclick="openViewsModal(${j.id})" title="คลิกเพื่อบันทึกและดูยอดวิวแยกของแต่ละช่องทาง">📊 แยกช่องทาง</button></td>
                 <td class="action-group">
-                    <button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;" ${disabledState}>✏️ แก้ไข</button><br>
-                    <button class="btn-action btn-danger" onclick="deleteJob(${j.id})" ${disabledState}>🗑️ ลบ</button>
+                    <button class="btn-action" onclick="openEditModal(${j.id})" style="margin-bottom:6px;" ${disabledState} title="แก้ไขรายละเอียดงานนี้">✏️ แก้ไข</button><br>
+                    <button class="btn-action btn-danger" onclick="deleteJob(${j.id})" ${disabledState} title="ลบข้อมูลงานนี้ถาวร">🗑️ ลบ</button>
                 </td>
             </tr>
         `;
@@ -1029,6 +1030,9 @@ function applyFilters() {
         currentPage = 1; 
         updateAllContentTable(true); 
     }
+    
+    // 🌟 เรียกใช้ฟังก์ชันคำนวณยอดวิวด้านบนใหม่ทุกครั้งที่มีการกรองข้อมูล 🌟
+    calculateViewStats(filteredAllData);
 }
 
 function resetFilters() {
@@ -1074,7 +1078,7 @@ function closeAllContentModal() {
     document.getElementById('allContentModal').style.display = 'none'; 
 }
 
-// 🌟 โหลดข้อมูลทั้งหมดจาก Google Sheet (รวม Campaign) 🌟
+// 🌟 โหลดข้อมูลทั้งหมดจาก Google Sheet (รวม Campaign)
 function loadDataFromGoogleSheet() {
     showLoading('กำลังดึงข้อมูล Google Sheet');
     fetch(GOOGLE_SHEET_URL)
@@ -1103,7 +1107,7 @@ function loadDataFromGoogleSheet() {
                 
                 renderTargets();
                 renderCampaignCards(); // วาดการ์ดแคมเปญ
-                applyFilters(); 
+                applyFilters(); // applyFilters จะกระตุ้น calculateViewStats อัตโนมัติ
                 updateChart();
                 setRandomMascots();
             }
@@ -1118,6 +1122,42 @@ function loadDataFromGoogleSheet() {
             setRandomMascots();
             Swal.fire({ icon: 'info', title: 'ออฟไลน์โหมด', text: 'ไม่สามารถเชื่อมต่อ Server ได้', confirmButtonColor: '#4f46e5' });
         });
+}
+
+// 🌟 ฟังก์ชันคำนวณยอดวิวรวมแยกตามช่องทางและรูปแบบ 🌟
+function calculateViewStats(dataList) {
+    const stats = {
+        'Facebook': { total: 0, vid: 0, pic: 0 },
+        'TikTok': { total: 0, vid: 0, pic: 0 },
+        'YouTube': { total: 0, vid: 0, pic: 0 },
+        'Line OA': { total: 0, vid: 0, pic: 0 }
+    };
+
+    dataList.forEach(job => {
+        const format = job.format; // 'Videos' หรือ 'Pictures'
+        job.platforms.forEach(p => {
+            const views = parseInt(p.views) || 0;
+            if (stats[p.name]) {
+                stats[p.name].total += views;
+                if (format === 'Videos') {
+                    stats[p.name].vid += views;
+                } else if (format === 'Pictures') {
+                    stats[p.name].pic += views;
+                }
+            }
+        });
+    });
+
+    const platformMap = { 'Facebook': 'fb', 'TikTok': 'tk', 'YouTube': 'yt', 'Line OA': 'line' };
+    
+    Object.keys(platformMap).forEach(key => {
+        const idKey = platformMap[key];
+        if (document.getElementById(`stat-tot-${idKey}`)) {
+            document.getElementById(`stat-tot-${idKey}`).innerText = stats[key].total.toLocaleString();
+            document.getElementById(`stat-vid-${idKey}`).innerText = stats[key].vid.toLocaleString();
+            document.getElementById(`stat-pic-${idKey}`).innerText = stats[key].pic.toLocaleString();
+        }
+    });
 }
 
 window.onload = () => {
