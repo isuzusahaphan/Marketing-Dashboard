@@ -29,20 +29,20 @@
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
             <div class="header-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                 <div style="font-size: 0.85em; color: var(--text-muted); font-weight: bold; background: var(--border); padding: 5px 10px; border-radius: 4px;">อีซูซุสหะภัณฑ์</div>
-                <button id="modeToggleBtn" class="btn-action" style="background: #10b981; color: white; border: none;" onclick="toggleMode()">👨‍💼 โหมดผู้บริหาร</button>
-                <button id="btnSetTarget" class="btn-action btn-primary" onclick="openTargetModal()" disabled>🎯 ตั้งค่าเป้าหมาย</button>
+                <button id="modeToggleBtn" class="btn-action" style="background: #10b981; color: white; border: none;" onclick="toggleMode()" title="คลิกเพื่อสลับระหว่างโหมดดูรายงาน และโหมดบันทึกข้อมูลคอนเทนต์">👨‍💼 โหมดผู้บริหาร</button>
+                <button id="btnSetTarget" class="btn-action btn-primary" onclick="openTargetModal()" disabled title="ต้องสลับเป็นโหมดบันทึกงานก่อน จึงจะตั้งค่าเป้าหมายผู้ติดตามได้">🎯 ตั้งค่าเป้าหมาย</button>
             </div>
-            <div id="lastUpdateText" class="black-badge">อัปเดตผู้ติดตามล่าสุด: ยังไม่มีข้อมูล</div>
+            <div id="lastUpdateText" class="black-badge" title="วันที่มีการกดบันทึกยอดผู้ติดตามล่าสุด">อัปเดตผู้ติดตามล่าสุด: ยังไม่มีข้อมูล</div>
         </div>
     </div>
 
     <div class="target-grid">
-        <div class="target-card" style="border-color: var(--color-fb);" onclick="window.open('https://www.facebook.com/Sahaphanautosale', '_blank')">
+        <div class="target-card" style="border-color: var(--color-fb);" onclick="window.open('https://www.facebook.com/Sahaphanautosale', '_blank')" title="คลิกเพื่อเปิดหน้า Facebook ของทางสาขา">
             <div class="target-header">
-                <span style="color: var(--color-fb);">Facebook</span>
+                <span style="color: var(--color-fb);"><i class="fab fa-facebook"></i> Facebook</span>
                 <span id="pct-Facebook" style="font-weight: 800;">0%</span>
             </div>
-            <div class="progress-container">
+            <div class="progress-container" title="เปอร์เซ็นต์ความคืบหน้าสู่เป้าหมายผู้ติดตาม">
                 <div id="bar-Facebook" class="progress-bar" style="width: 0%;"></div>
             </div>
             <div class="target-stats">
@@ -50,12 +50,12 @@
                 <span id="tar-Facebook">เป้าหมาย: 0</span>
             </div>
         </div>
-        <div class="target-card" style="border-color: var(--color-tk);" onclick="window.open('https://www.tiktok.com/@isuzu_shp', '_blank')">
+        <div class="target-card" style="border-color: var(--color-tk);" onclick="window.open('https://www.tiktok.com/@isuzu_shp', '_blank')" title="คลิกเพื่อเปิดหน้า TikTok ของทางสาขา">
             <div class="target-header">
-                <span style="color: var(--color-tk);">TikTok</span>
+                <span style="color: var(--color-tk);"><i class="fab fa-tiktok"></i> TikTok</span>
                 <span id="pct-TikTok" style="font-weight: 800;">0%</span>
             </div>
-            <div class="progress-container">
+            <div class="progress-container" title="เปอร์เซ็นต์ความคืบหน้าสู่เป้าหมายผู้ติดตาม">
                 <div id="bar-TikTok" class="progress-bar" style="width: 0%;"></div>
             </div>
             <div class="target-stats">
@@ -63,12 +63,12 @@
                 <span id="tar-TikTok">เป้าหมาย: 0</span>
             </div>
         </div>
-        <div class="target-card" style="border-color: var(--color-yt);" onclick="window.open('https://www.youtube.com/@%E0%B8%AD%E0%B8%B5%E0%B8%8B%E0%B8%B9%E0%B8%8B%E0%B8%B8%E0%B8%AA%E0%B8%AB%E0%B8%B0%E0%B8%A0%E0%B8%B1%E0%B8%93%E0%B8%91%E0%B9%8C', '_blank')">
+        <div class="target-card" style="border-color: var(--color-yt);" onclick="window.open('https://www.youtube.com/@%E0%B8%AD%E0%B8%B5%E0%B8%8B%E0%B8%B9%E0%B8%8B%E0%B8%B8%E0%B8%AA%E0%B8%AB%E0%B8%B0%E0%B8%A0%E0%B8%B1%E0%B8%93%E0%B8%91%E0%B9%8C', '_blank')" title="คลิกเพื่อเปิดหน้า YouTube ของทางสาขา">
             <div class="target-header">
-                <span style="color: var(--color-yt);">YouTube</span>
+                <span style="color: var(--color-yt);"><i class="fab fa-youtube"></i> YouTube</span>
                 <span id="pct-YouTube" style="font-weight: 800;">0%</span>
             </div>
-            <div class="progress-container">
+            <div class="progress-container" title="เปอร์เซ็นต์ความคืบหน้าสู่เป้าหมายผู้ติดตาม">
                 <div id="bar-YouTube" class="progress-bar" style="width: 0%;"></div>
             </div>
             <div class="target-stats">
@@ -76,12 +76,12 @@
                 <span id="tar-YouTube">เป้าหมาย: 0</span>
             </div>
         </div>
-        <div class="target-card" style="border-color: var(--color-line);" onclick="window.open('https://lin.ee/VrAaVTj', '_blank')">
+        <div class="target-card" style="border-color: var(--color-line);" onclick="window.open('https://lin.ee/VrAaVTj', '_blank')" title="คลิกเพื่อเปิดหน้า Line OA ของทางสาขา">
             <div class="target-header">
-                <span style="color: var(--color-line);">Line OA</span>
+                <span style="color: var(--color-line);"><i class="fab fa-line"></i> Line OA</span>
                 <span id="pct-Line OA" style="font-weight: 800;">0%</span>
             </div>
-            <div class="progress-container">
+            <div class="progress-container" title="เปอร์เซ็นต์ความคืบหน้าสู่เป้าหมายผู้ติดตาม">
                 <div id="bar-Line OA" class="progress-bar" style="width: 0%;"></div>
             </div>
             <div class="target-stats">
@@ -91,10 +91,58 @@
         </div>
     </div>
 
+    <div class="campaign-section" style="margin-top: 10px; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0; font-size: 1.2em; color: var(--text-main);"><i class="fas fa-eye" style="color: var(--primary);"></i> สรุปยอดวิวรวม (แยกตามแพลตฟอร์ม)</h2>
+        </div>
+        <div class="views-grid">
+            <div class="view-stat-card" style="border-bottom: 4px solid var(--color-fb);">
+                <div class="view-stat-header">
+                    <span style="color: var(--color-fb); font-weight: bold;"><i class="fab fa-facebook"></i> Facebook</span>
+                    <span class="view-total" id="stat-tot-fb" title="ยอดวิวรวมทั้งหมดจากช่องทาง Facebook (จะคำนวณเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">0</span>
+                </div>
+                <div class="view-stat-details">
+                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบวิดีโอ (Videos)">🎬 <b id="stat-vid-fb">0</b></div>
+                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบรูปภาพ (Pictures)">🖼️ <b id="stat-pic-fb">0</b></div>
+                </div>
+            </div>
+            <div class="view-stat-card" style="border-bottom: 4px solid var(--color-tk);">
+                <div class="view-stat-header">
+                    <span style="color: var(--color-tk); font-weight: bold;"><i class="fab fa-tiktok"></i> TikTok</span>
+                    <span class="view-total" id="stat-tot-tk" title="ยอดวิวรวมทั้งหมดจากช่องทาง TikTok (จะคำนวณเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">0</span>
+                </div>
+                <div class="view-stat-details">
+                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบวิดีโอ (Videos)">🎬 <b id="stat-vid-tk">0</b></div>
+                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบรูปภาพ (Pictures)">🖼️ <b id="stat-pic-tk">0</b></div>
+                </div>
+            </div>
+            <div class="view-stat-card" style="border-bottom: 4px solid var(--color-yt);">
+                <div class="view-stat-header">
+                    <span style="color: var(--color-yt); font-weight: bold;"><i class="fab fa-youtube"></i> YouTube</span>
+                    <span class="view-total" id="stat-tot-yt" title="ยอดวิวรวมทั้งหมดจากช่องทาง YouTube (จะคำนวณเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">0</span>
+                </div>
+                <div class="view-stat-details">
+                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบวิดีโอ (Videos)">🎬 <b id="stat-vid-yt">0</b></div>
+                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบรูปภาพ (Pictures)">🖼️ <b id="stat-pic-yt">0</b></div>
+                </div>
+            </div>
+            <div class="view-stat-card" style="border-bottom: 4px solid var(--color-line);">
+                <div class="view-stat-header">
+                    <span style="color: var(--color-line); font-weight: bold;"><i class="fab fa-line"></i> Line OA</span>
+                    <span class="view-total" id="stat-tot-line" title="ยอดวิวรวมทั้งหมดจากช่องทาง Line OA (จะคำนวณเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">0</span>
+                </div>
+                <div class="view-stat-details">
+                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบวิดีโอ (Videos)">🎬 <b id="stat-vid-line">0</b></div>
+                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบรูปภาพ (Pictures)">🖼️ <b id="stat-pic-line">0</b></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="campaign-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h2 style="margin: 0; font-size: 1.2em; color: var(--text-main);"><i class="fas fa-gift" style="color: var(--isuzu-red);"></i> สรุป Campaign ฝ่ายบริการ</h2>
-            <button id="btnAddCampaign" class="btn-action" style="background: var(--primary); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; display: none; align-items: center; justify-content: center;" onclick="openAddCampaignModal()">
+            <button id="btnAddCampaign" class="btn-action" style="background: var(--primary); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; display: none; align-items: center; justify-content: center;" onclick="openAddCampaignModal()" title="คลิกเพื่อเพิ่มเป้าหมายและข้อมูลแคมเปญฝ่ายบริการตัวใหม่">
                 <i class="fas fa-plus"></i>
             </button>
         </div>
@@ -104,19 +152,19 @@
     <div id="mainContentGrid" class="main-grid executive-mode">
         <div class="card" style="display: flex; flex-direction: column;">
             <div class="card-title" style="margin-bottom: 15px;">จำนวนชิ้นงานแต่ละเดือน (ปี 2026)</div>
-            <div style="margin-bottom: 20px; background: #f8fafc; padding: 12px 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="margin-bottom: 20px; background: #f8fafc; padding: 12px 15px; border-radius: 8px; border: 1px solid #e2e8f0;" title="แถบแสดงเลเวลความขยันในการลงคอนเทนต์ประจำเดือน">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
                     <span style="font-size: 0.9em; font-weight: bold; color: var(--text-main);" id="monthlyStatusText">โหลดข้อมูล...</span>
                     <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);" id="monthlyCountText">0 งาน</span>
                 </div>
                 <div class="monthly-progress-container">
                     <div id="monthlyProgressBar" class="monthly-progress-bar" style="width: 0%;">
-                        <img id="monthlyMascot" class="mascot-leader" src="" alt="mascot">
+                        <img id="monthlyMascot" class="mascot-leader" src="" alt="mascot" title="มาสคอตอีซูซุจะวิ่งตามความคืบหน้าของงาน!">
                     </div>
                 </div>
             </div>
             <div style="position: relative; height: 250px; width: 100%;">
-                <canvas id="monthlyChart"></canvas>
+                <canvas id="monthlyChart" title="คลิกที่แท่งกราฟของแต่ละเดือนเพื่อกรอกดูรายละเอียดในเดือนนั้นๆ ได้ทันที"></canvas>
             </div>
         </div>
 
@@ -155,14 +203,14 @@
             <div class="form-group" style="margin-bottom: 10px; margin-top: 15px;">
                 <label>ช่องทางที่โพสต์</label>
                 <div class="checkbox-group">
-                    <label class="checkbox-label"><input type="checkbox" id="chk-fb" value="Facebook" onchange="toggleLinkInputs()" checked> Facebook</label>
-                    <label class="checkbox-label"><input type="checkbox" id="chk-tk" value="TikTok" onchange="toggleLinkInputs()"> TikTok</label>
-                    <label class="checkbox-label"><input type="checkbox" id="chk-yt" value="YouTube" onchange="toggleLinkInputs()"> YouTube</label>
-                    <label class="checkbox-label"><input type="checkbox" id="chk-line" value="Line OA" onchange="toggleLinkInputs()"> Line OA</label>
+                    <label class="checkbox-label" title="เลือกหากโพสต์ลง Facebook"><input type="checkbox" id="chk-fb" value="Facebook" onchange="toggleLinkInputs()" checked> Facebook</label>
+                    <label class="checkbox-label" title="เลือกหากโพสต์ลง TikTok"><input type="checkbox" id="chk-tk" value="TikTok" onchange="toggleLinkInputs()"> TikTok</label>
+                    <label class="checkbox-label" title="เลือกหากโพสต์ลง YouTube"><input type="checkbox" id="chk-yt" value="YouTube" onchange="toggleLinkInputs()"> YouTube</label>
+                    <label class="checkbox-label" title="เลือกหากโพสต์ลง Line OA"><input type="checkbox" id="chk-line" value="Line OA" onchange="toggleLinkInputs()"> Line OA</label>
                 </div>
             </div>
             <div id="linkInputsContainer" class="link-inputs-container"></div>
-            <button id="btnSaveMain" class="btn-submit" style="margin-top: 20px;" onclick="saveJob()">บันทึกข้อมูล</button>
+            <button id="btnSaveMain" class="btn-submit" style="margin-top: 20px;" onclick="saveJob()" title="กดเพื่ออัปเดตงานเข้าสู่ Google Sheet ของระบบ">บันทึกข้อมูล</button>
         </div>
     </div>
 
@@ -172,7 +220,7 @@
                 <div class="card-title" style="margin-bottom: 15px; border: none; padding: 0;">รายการคอนเทนต์ (10 รายการล่าสุด)</div>
                 
                 <div class="filter-container">
-                    <select id="monthFilter" class="form-control" style="width: auto; padding: 6px 10px; font-weight: bold; background: #f9fafb;" onchange="applyFilters(); updateMonthlyStatus();">
+                    <select id="monthFilter" class="form-control" style="width: auto; padding: 6px 10px; font-weight: bold; background: #f9fafb;" onchange="applyFilters(); updateMonthlyStatus();" title="กรองรายการคอนเทนต์ตามเดือน และจะอัปเดตตัวเลขการ์ดยอดวิวด้านบนด้วย">
                         <option value="all">🗓️ ทุกเดือน (All)</option>
                         <option value="0">มกราคม (Jan)</option><option value="1">กุมภาพันธ์ (Feb)</option><option value="2">มีนาคม (Mar)</option>
                         <option value="3">เมษายน (Apr)</option><option value="4">พฤษภาคม (May)</option><option value="5">มิถุนายน (Jun)</option>
@@ -217,8 +265,8 @@
                             <label class="filter-chk-label"><input type="checkbox" class="filter-type" value="อู่สี" onchange="applyFilters()"> อู่สี</label>
                         </div>
                     </div>
-                    <button class="btn-action" onclick="resetFilters()" style="color: #b91c1c; border-color: #fca5a5; background: #fee2e2;">🔄 ล้างตัวกรอง</button>
-                    <button class="btn-action" style="margin-left: auto;" onclick="openAllContentModal()">ดูทั้งหมด</button>
+                    <button class="btn-action" onclick="resetFilters()" style="color: #b91c1c; border-color: #fca5a5; background: #fee2e2;" title="ล้างค่าที่กรอกเลือกไว้ทั้งหมดกลับสู่ปกติ">🔄 ล้างตัวกรอง</button>
+                    <button class="btn-action" style="margin-left: auto;" onclick="openAllContentModal()" title="เปิดหน้าต่างโมดอลขนาดใหญ่เพื่อดูและค้นหาคอนเทนต์ทั้งหมด">ดูทั้งหมด</button>
                 </div>
                 <div id="activeFiltersArea" class="filter-tag-area"></div>
             </div>
