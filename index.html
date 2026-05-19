@@ -36,7 +36,7 @@
         </div>
     </div>
 
-    <div class="target-grid">
+    <div class="target-grid" style="margin-bottom: 12px;">
         <div class="target-card" style="border-color: var(--color-fb);" onclick="window.open('https://www.facebook.com/Sahaphanautosale', '_blank')" title="คลิกเพื่อเปิดหน้า Facebook ของทางสาขา">
             <div class="target-header">
                 <span style="color: var(--color-fb);"><i class="fab fa-facebook"></i> Facebook</span>
@@ -91,51 +91,34 @@
         </div>
     </div>
 
-    <div class="campaign-section" style="margin-top: 10px; margin-bottom: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 style="margin: 0; font-size: 1.2em; color: var(--text-main);"><i class="fas fa-eye" style="color: var(--primary);"></i> สรุปยอดวิวรวม (แยกตามแพลตฟอร์ม)</h2>
+    <div class="mini-stat-ribbon">
+        <div class="ribbon-item fb" title="ยอดวิว Facebook (จะเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">
+            <div style="display:flex; align-items:center;">
+                <i class="fab fa-facebook" style="color: var(--color-fb);"></i> 
+                <span class="tot" id="stat-tot-fb">0</span>
+            </div>
+            <small>🎬 <span id="stat-vid-fb">0</span> | 🖼️ <span id="stat-pic-fb">0</span></small>
         </div>
-        <div class="views-grid">
-            <div class="view-stat-card" style="border-bottom: 4px solid var(--color-fb);">
-                <div class="view-stat-header">
-                    <span style="color: var(--color-fb); font-weight: bold;"><i class="fab fa-facebook"></i> Facebook</span>
-                    <span class="view-total" id="stat-tot-fb" title="ยอดวิวรวมทั้งหมดจากช่องทาง Facebook (จะคำนวณเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">0</span>
-                </div>
-                <div class="view-stat-details">
-                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบวิดีโอ (Videos)">🎬 <b id="stat-vid-fb">0</b></div>
-                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบรูปภาพ (Pictures)">🖼️ <b id="stat-pic-fb">0</b></div>
-                </div>
+        <div class="ribbon-item tk" title="ยอดวิว TikTok (จะเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">
+            <div style="display:flex; align-items:center;">
+                <i class="fab fa-tiktok" style="color: var(--color-tk);"></i> 
+                <span class="tot" id="stat-tot-tk">0</span>
             </div>
-            <div class="view-stat-card" style="border-bottom: 4px solid var(--color-tk);">
-                <div class="view-stat-header">
-                    <span style="color: var(--color-tk); font-weight: bold;"><i class="fab fa-tiktok"></i> TikTok</span>
-                    <span class="view-total" id="stat-tot-tk" title="ยอดวิวรวมทั้งหมดจากช่องทาง TikTok (จะคำนวณเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">0</span>
-                </div>
-                <div class="view-stat-details">
-                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบวิดีโอ (Videos)">🎬 <b id="stat-vid-tk">0</b></div>
-                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบรูปภาพ (Pictures)">🖼️ <b id="stat-pic-tk">0</b></div>
-                </div>
+            <small>🎬 <span id="stat-vid-tk">0</span> | 🖼️ <span id="stat-pic-tk">0</span></small>
+        </div>
+        <div class="ribbon-item yt" title="ยอดวิว YouTube (จะเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">
+            <div style="display:flex; align-items:center;">
+                <i class="fab fa-youtube" style="color: var(--color-yt);"></i> 
+                <span class="tot" id="stat-tot-yt">0</span>
             </div>
-            <div class="view-stat-card" style="border-bottom: 4px solid var(--color-yt);">
-                <div class="view-stat-header">
-                    <span style="color: var(--color-yt); font-weight: bold;"><i class="fab fa-youtube"></i> YouTube</span>
-                    <span class="view-total" id="stat-tot-yt" title="ยอดวิวรวมทั้งหมดจากช่องทาง YouTube (จะคำนวณเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">0</span>
-                </div>
-                <div class="view-stat-details">
-                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบวิดีโอ (Videos)">🎬 <b id="stat-vid-yt">0</b></div>
-                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบรูปภาพ (Pictures)">🖼️ <b id="stat-pic-yt">0</b></div>
-                </div>
+            <small>🎬 <span id="stat-vid-yt">0</span> | 🖼️ <span id="stat-pic-yt">0</span></small>
+        </div>
+        <div class="ribbon-item line" title="ยอดวิว Line OA (จะเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">
+            <div style="display:flex; align-items:center;">
+                <i class="fab fa-line" style="color: var(--color-line);"></i> 
+                <span class="tot" id="stat-tot-line">0</span>
             </div>
-            <div class="view-stat-card" style="border-bottom: 4px solid var(--color-line);">
-                <div class="view-stat-header">
-                    <span style="color: var(--color-line); font-weight: bold;"><i class="fab fa-line"></i> Line OA</span>
-                    <span class="view-total" id="stat-tot-line" title="ยอดวิวรวมทั้งหมดจากช่องทาง Line OA (จะคำนวณเปลี่ยนไปตามตัวกรองเดือนด้านล่าง)">0</span>
-                </div>
-                <div class="view-stat-details">
-                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบวิดีโอ (Videos)">🎬 <b id="stat-vid-line">0</b></div>
-                    <div class="detail-box" title="ยอดรวมวิวล่าสุดที่มาจากรูปแบบรูปภาพ (Pictures)">🖼️ <b id="stat-pic-line">0</b></div>
-                </div>
-            </div>
+            <small>🎬 <span id="stat-vid-line">0</span> | 🖼️ <span id="stat-pic-line">0</span></small>
         </div>
     </div>
 
