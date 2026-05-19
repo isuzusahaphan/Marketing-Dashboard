@@ -650,73 +650,54 @@ h1, h2, h3 {
 }
 
 /* ==================================
-   📊 View Stats Cards (การ์ดสรุปยอดวิว)
+   📊 Mini Stat Ribbon (สรุปยอดวิวแบบแถบเล็ก)
    ================================== */
-.views-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 15px;
-}
-
-.view-stat-card {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 15px 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    border: 1px solid var(--border);
-    transition: transform 0.2s, box-shadow 0.2s;
-    background-image: linear-gradient(to bottom, #ffffff, #f8fafc);
-}
-
-.view-stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.06);
-}
-
-.view-stat-header {
+.mini-stat-ribbon {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    font-size: 1.05em;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 25px;
 }
 
-.view-total {
-    font-size: 1.3em;
-    font-weight: 900;
-    color: var(--text-main);
-    cursor: help;
-}
-
-.view-stat-details {
-    display: flex;
-    gap: 10px;
-    border-top: 1px dashed #e2e8f0;
-    padding-top: 12px;
-}
-
-.detail-box {
+.ribbon-item {
     flex: 1;
-    background: #ffffff;
-    padding: 8px 5px;
+    min-width: 220px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    font-size: 0.85em;
-    text-align: center;
-    color: var(--text-muted);
-    border: 1px solid #e2e8f0;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    transition: 0.2s;
     cursor: help;
-    transition: background 0.2s;
 }
 
-.detail-box:hover {
-    background: #f1f5f9;
+.ribbon-item:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
 }
 
-.detail-box b {
+.ribbon-item.fb { border-left: 4px solid var(--color-fb); }
+.ribbon-item.tk { border-left: 4px solid var(--color-tk); }
+.ribbon-item.yt { border-left: 4px solid var(--color-yt); }
+.ribbon-item.line { border-left: 4px solid var(--color-line); }
+
+.ribbon-item .tot {
+    font-weight: 800;
+    font-size: 1.1em;
     color: var(--text-main);
-    font-size: 1.15em;
-    display: block;
-    margin-top: 4px;
+    margin-left: 6px;
+}
+
+.ribbon-item small {
+    color: var(--text-muted);
+    font-size: 0.85em;
+    font-weight: 500;
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 6px;
 }
 
 /* ==================================
