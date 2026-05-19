@@ -714,13 +714,17 @@ function loadDataFromGoogleSheet() {
         });
 }
 
-// 🌟 ฟังก์ชันย่อตัวเลข (ปัดเศษทิ้งไม่เอาทศนิยม เช่น 64500 -> 64K)
+// 🌟 ฟังก์ชันย่อตัวเลข (จำกัดให้ตัวเลขหน้า K/M ไม่เกิน 3 ตัวอักษร)
 function formatNumberToKM(num) {
     if (num >= 1000000) {
-        return Math.floor(num / 1000000) + 'M';
+        let val = num / 1000000;
+        if (val >= 100) return Math.floor(val) + 'M';
+        return val.toFixed(1).replace(/\.0$/, '') + 'M';
     }
     if (num >= 1000) {
-        return Math.floor(num / 1000) + 'K';
+        let val = num / 1000;
+        if (val >= 100) return Math.floor(val) + 'K';
+        return val.toFixed(1).replace(/\.0$/, '') + 'K';
     }
     return num.toString();
 }
