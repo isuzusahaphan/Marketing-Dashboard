@@ -240,7 +240,7 @@ function openTrendModal(platform) {
                     align: 'top',
                     color: platformColors[platform] || '#4f46e5',
                     font: { weight: 'bold', size: 10 },
-                    formatter: function(value) { return value > 0 ? formatNumberToKM(value) : ''; } // ประยุกต์ใช้ K/M กับป้ายบนกราฟด้วย
+                    formatter: function(value) { return value > 0 ? formatNumberToKM(value) : ''; } 
                 }
             },
             scales: {
@@ -714,13 +714,13 @@ function loadDataFromGoogleSheet() {
         });
 }
 
-// 🌟 ฟังก์ชันย่อตัวเลข เช่น 1500 -> 1.5K, 2000000 -> 2M
+// 🌟 ฟังก์ชันย่อตัวเลข (ปัดเศษทิ้งไม่เอาทศนิยม เช่น 64500 -> 64K)
 function formatNumberToKM(num) {
     if (num >= 1000000) {
-        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+        return Math.floor(num / 1000000) + 'M';
     }
     if (num >= 1000) {
-        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+        return Math.floor(num / 1000) + 'K';
     }
     return num.toString();
 }
