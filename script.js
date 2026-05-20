@@ -575,19 +575,54 @@ async function saveEditJob() {
     } catch (error) { Swal.fire({ icon: 'error', text: 'สำเร็จฝั่งเว็บ แต่บันทึกลง Sheet ไม่เข้า' }); } finally { btnSubmit.disabled = false; }
 }
 
+// 🌟 แก้ไขบั๊กแล้ว: เปลี่ยน id เป็น chkId ให้ถูกต้องใน array platformCheckboxes
 async function saveJob() {
-    const title = document.getElementById('jobTitle').value.trim(); const dateInput = document.getElementById('jobDate').value; const type = document.getElementById('jobType').value; const format = document.getElementById('jobFormat').value; const btnSubmit = document.getElementById('btnSaveMain');
+    const title = document.getElementById('jobTitle').value.trim(); 
+    const dateInput = document.getElementById('jobDate').value; 
+    const type = document.getElementById('jobType').value; 
+    const format = document.getElementById('jobFormat').value; 
+    const btnSubmit = document.getElementById('btnSaveMain');
+    
     if (!dateInput || !title) return Swal.fire({ icon: 'warning', text: 'กรุณากรอกวันที่และชื่อชิ้นงานให้ครบครับ' });
-    let selectedPlatforms = []; const platformCheckboxes = [ { chkId: 'chk-fb', name: 'Facebook', inputId: 'link-fb' }, { id: 'chk-tk', name: 'TikTok', inputId: 'link-tk' }, { id: 'chk-yt', name: 'YouTube', inputId: 'link-yt' }, { id: 'chk-line', name: 'Line OA', inputId: 'link-line' } ];
-    platformCheckboxes.forEach(p => { if (document.getElementById(p.chkId)?.checked) { const linkInput = document.getElementById(p.inputId); selectedPlatforms.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '', views: 0 }); } });
+    
+    let selectedPlatforms = []; 
+    const platformCheckboxes = [ 
+        { chkId: 'chk-fb', name: 'Facebook', inputId: 'link-fb' }, 
+        { chkId: 'chk-tk', name: 'TikTok', inputId: 'link-tk' }, 
+        { chkId: 'chk-yt', name: 'YouTube', inputId: 'link-yt' }, 
+        { chkId: 'chk-line', name: 'Line OA', inputId: 'link-line' } 
+    ];
+    
+    platformCheckboxes.forEach(p => { 
+        if (document.getElementById(p.chkId)?.checked) { 
+            const linkInput = document.getElementById(p.inputId); 
+            selectedPlatforms.push({ name: p.name, link: linkInput ? linkInput.value.trim() : '', views: 0 }); 
+        } 
+    });
+    
     if (selectedPlatforms.length === 0) return Swal.fire({ icon: 'warning', text: 'กรุณาเลือกช่องทางอย่างน้อย 1 ช่องทาง' });
+    
     const newJob = { action: 'add', id: Date.now(), date: dateInput, title: title, type: type, format: format, platforms: selectedPlatforms, totalViews: 0 };
     btnSubmit.disabled = true; 
-    marketingData.push(newJob); document.getElementById('jobTitle').value = ''; toggleLinkInputs(); setRandomMascots(); applyFilters(); updateChart(); showLoading('กำลังบันทึกข้อมูล...');
+    
+    marketingData.push(newJob); 
+    document.getElementById('jobTitle').value = ''; 
+    toggleLinkInputs(); 
+    setRandomMascots(); 
+    applyFilters(); 
+    updateChart(); 
+    showLoading('กำลังบันทึกข้อมูล...');
+    
     try {
-        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(newJob) }); }
+        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) { 
+            await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(newJob) }); 
+        }
         Swal.fire({ icon: 'success', title: 'บันทึกชิ้นงานสำเร็จ!', showConfirmButton: false, timer: 1500 });
-    } catch (error) { Swal.fire({ icon: 'error', text: 'บันทึกหน้าเว็บสำเร็จ แต่เข้า Sheet ไม่ได้' }); } finally { btnSubmit.disabled = false; }
+    } catch (error) { 
+        Swal.fire({ icon: 'error', text: 'บันทึกหน้าเว็บสำเร็จ แต่เข้า Sheet ไม่ได้' }); 
+    } finally { 
+        btnSubmit.disabled = false; 
+    }
 }
 
 function deleteJob(id) {
